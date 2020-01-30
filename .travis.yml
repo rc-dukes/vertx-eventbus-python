@@ -11,7 +11,7 @@ matrix:
 
     - language: java
       dist: bionic
-      jdk: oraclejdk8
+      jdk: openjdk8
       before_script:
         - cd java
       script:
