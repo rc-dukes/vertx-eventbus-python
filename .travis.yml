@@ -10,7 +10,7 @@ matrix:
         - python -m unittest discover
 
     - language: java
-      dist: bionic
+      dist: xenial
       jdk: openjdk8
       before_script:
         - cd java
