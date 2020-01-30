@@ -1,4 +1,51 @@
 #!/bin/bash
 # WF 2020-01-30
-cd java
-mvn test
+pwd=$(pwd)
+
+usage() {
+  echo "usage:"
+  echo "  $0 [a|--all|-h|--help|-j|--java|-p|--python]"
+  echo " -h|--help: show this help"
+  echo " -a|--all: run all tests"
+  echo " -j|--java: run java tests"
+  echo " -p|--python: run python tests"
+  exit 1
+}
+
+testJava() {
+   cd $pwd/java
+   mvn test
+}
+
+testPython() {
+  cd $pwd/python
+  python -m unittest
+}
+
+if [ $# -lt 1 ]
+then
+  usage
+fi
+# commandline option
+while [  "$1" != ""  ]
+do
+  option=$1
+  shift
+
+  # optionally show usage
+  case $option in
+    -h|--help)
+      usage
+      ;;
+    -j|--java)
+      testJava
+      ;;
+    -p|--python)
+      testPython
+      ;;
+    -a|--all)
+      testJava
+      testPython
+      ;;
+  esac
+done
