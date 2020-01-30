@@ -8,12 +8,18 @@
 
 Python vertx eventbus bridge
 
-### Documentation
+## State of project
+This project was not forked but copied to make it self-contained on 2020-01-30.
+At this time the code is not stable yet and tests fail - please stay tuned ...
+
+## Documentation
 [Wiki](http://wiki.bitplan.com/index.php/Vertx-eventbus-python)
 
-### Test
+## Test
+
+### Java
 ```
-./test
+./test --java
 
 ...
 Results :
@@ -21,5 +27,14 @@ Results :
 Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
 ```
 
-### History
+### Python
+```
+./test --python
+...
+Ran 3 tests in 0.004s
+
+FAILED (failures=1, errors=1)
+```
+
+## History
 The code originally resided in [vert-x3/vertx-eventbus-bridge-clients](https://github.com/vert-x3/vertx-eventbus-bridge-clients) repository. Unfortunately it was not very self-contained and testable there
