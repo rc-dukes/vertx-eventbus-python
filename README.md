@@ -17,6 +17,21 @@ At this time the code is not stable yet and tests fail - please stay tuned ...
 
 ## Test
 
+### TestEnviroment
+The tests below have been run succesfully in the following environments:
+#### MacOS
+```
+mvn -version
+Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f)
+Maven home: /opt/local/share/java/maven3
+Java version: 1.8.0_152, vendor: Oracle Corporation, runtime: /Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre
+Default locale: de_DE, platform encoding: UTF-8
+OS name: "mac os x", version: "10.13.6", arch: "x86_64", family: "mac"
+
+python3 --version
+Python 3.7.6
+```
+
 ### Java
 ```
 ./test --java
@@ -28,6 +43,11 @@ Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
 ```
 
 ### Python
+For the python tests to be succesful you might want to start the echoVerticle manually first with
+```
+java/run
+```
+and then start the tests in another terminal window:
 ```
 ./test --python
 ...
@@ -35,6 +55,19 @@ Ran 3 tests in 0.004s
 
 FAILED (failures=1, errors=1)
 ```
+
+### all
+```
+./test --all
+```
+
+this test will try to run the steps
+1. java tests
+2. start echoVerticle
+3. python tests
+
+automatically in sequence
+
 
 ## History
 The code originally resided in [vert-x3/vertx-eventbus-bridge-clients](https://github.com/vert-x3/vertx-eventbus-bridge-clients) repository. Unfortunately it was not very self-contained and testable there
