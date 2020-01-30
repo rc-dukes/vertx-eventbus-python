@@ -9,5 +9,16 @@ Python vertx eventbus bridge
 
 ### Documentation
 [Wiki](http://wiki.bitplan.com/index.php/Vertx-eventbus-python)
+
+### Test
+```
+./test
+
+...
+Results :
+
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
+```
+
 ### History
 The code originally resided in [vert-x3/vertx-eventbus-bridge-clients](https://github.com/vert-x3/vertx-eventbus-bridge-clients) repository. Unfortunately it was not very self-contained and testable there
