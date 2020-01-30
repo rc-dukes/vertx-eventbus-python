@@ -11,7 +11,8 @@ class Client(unittest.TestCase):
 
     def test_publish(self):
         c = Client()
-        eb = Eventbus.Eventbus(self, 'localhost', 7001)
+        eb = Eventbus.Eventbus(self, 'localhost', 7001,debug=True)
+
 
         #jsonObject -body
         body = {'msg': 'test1', }

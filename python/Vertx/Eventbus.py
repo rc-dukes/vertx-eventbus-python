@@ -6,6 +6,7 @@ import json
 import struct
 import time
 import threading
+import traceback
 
 # Eventbus constructor
 #	input parameters
@@ -31,17 +32,17 @@ import threading
 
 class Eventbus:
     ('TCP eventbus client for python')
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    Handlers = {}
-    state = 0
-    ReplyHandler = {}
-    writable = True
 
     # constructor
-    def __init__(self, instance, host='localhost', port=7000, TimeOut=0.1, TimeInterval=10.0):
+    def __init__(self, instance, host='localhost', port=7000, TimeOut=0.1, TimeInterval=10.0,debug=False):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.Handlers = {}
+        self.ReplyHandler = {}
         self.host = host
         self.port = port
         self.this = instance
+        self.debug=debug
+        self.writable=True
         if TimeOut < 0.01:
             self.TimeOut = 0.01
         else:
@@ -76,12 +77,12 @@ class Eventbus:
     def receive(self):
         try:
             if self.state < 3:  # closing socket
-                len_str = Eventbus.sock.recv(4)
+                len_str = self.sock.recv(4)
             else:
                 return False
             len1 = struct.unpack("!i", len_str)[0]
             if self.state < 3:  # closing socket
-                payload = Eventbus.sock.recv(len1)
+                payload = self.sock.recv(len1)
             else:
                 return False
             json_message = payload.decode('utf-8')
@@ -289,3 +290,5 @@ class Eventbus:
         print(No)
         print(Category)
         print (error)
+        if self.debug:
+            traceback.print_exc()

@@ -1,3 +1,7 @@
+# WF 2020-01-30
+# copied from .gitignore of rc-dukes java project and PI-Q-ROBOT python project
+# 
+nohup.out
 # Created by .ignore support plugin (hsz.mobi)
 
 # eclipse files
@@ -216,3 +220,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+

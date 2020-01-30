@@ -15,7 +15,7 @@ class Client(unittest.TestCase):
 
     def test_publish(self):
         c = Client()
-        eb = Eventbus.Eventbus(self, 'localhost', 7001)
+        eb = Eventbus.Eventbus(self, 'localhost', 7001,debug=True)
 
         eb.registerHandler('echo', Client.Handler)
         assert(eb.Handlers['echo'] != None)

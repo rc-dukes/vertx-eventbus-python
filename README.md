@@ -24,7 +24,7 @@ At this time the code is not stable yet and tests fail - please stay tuned ...
 ...
 Results :
 
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
 ```
 
 ### Python

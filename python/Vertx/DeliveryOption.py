@@ -7,9 +7,10 @@
 
 class DeliveryOption:
     ('deliveryOption class describe headers and replyAddress')
-    replyAddress = None
-    headers = {}
-    timeInterval = 10.0
+    def __init__(self):
+        self.replyAddress = None
+        self.headers = {}
+        self.timeInterval = 10.0
 
     def addHeader(self, header, value):
         self.headers[header] = value

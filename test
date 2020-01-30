@@ -1,7 +1,42 @@
 #!/bin/bash
 # WF 2020-01-30
-pwd=$(pwd)
 
+# remember my working directory
+pwd=$(pwd)
+echoVerticle=python-eventbus-example
+
+#ansi colors
+#http://www.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
+blue='\033[0;34m'
+red='\033[0;31m'
+green='\033[0;32m' # '\e[1;32m' is too bright for white bg.
+endColor='\033[0m'
+
+#
+# a colored message
+#   params:
+#     1: l_color - the color of the message
+#     2: l_msg - the message to display
+#
+color_msg() {
+  local l_color="$1"
+  local l_msg="$2"
+  echo -e "${l_color}$l_msg${endColor}"
+}
+
+# error
+#
+#   show an error message and exit
+#
+#   params:
+#     1: l_msg - the message to display
+error() {
+  local l_msg="$1"
+  # use ansi red for error
+  color_msg $red "Error: $l_msg" 1>&2
+}
+
+# show my usage
 usage() {
   echo "usage:"
   echo "  $0 [a|--all|-h|--help|-j|--java|-p|--python]"
@@ -12,14 +47,82 @@ usage() {
   exit 1
 }
 
+# start the Java JUnit tests via maven
 testJava() {
    cd $pwd/java
+   color_msg $blue "running java unit tests"
    mvn test
+   if [ $? -eq 0 ]
+   then
+     color_msg $green "java unit tests successful!"
+   else
+     color_msg $red "java unit tests failed"
+   fi
 }
 
+# start the Python Unit tests via the unittest module
 testPython() {
   cd $pwd/python
+  color_msg $blue "running python unit tests"
   python -m unittest
+  if [ $? -eq 0 ]
+  then
+    color_msg $green "python unit tests successful!"
+  else
+    color_msg $red "python unit tests failed"
+  fi
+}
+
+# start the java  based echo Verticle
+startEchoVerticle() {
+  color_msg $blue "starting echo Verticle"
+  rm $pwd/java/nohup.out
+  nohup $pwd/java/run&
+  local l_grep=1
+  local l_count=0
+  local l_loops=20
+  until [ $l_grep -eq 0 ]
+  do
+    sleep 1
+    pgrep -fla $echoVerticle
+    l_grep=$?
+    l_count=$((l_count+1))
+    if [ "$l_count" -gt "$l_loops" ]
+    then
+      error "failed to start echo verticle"
+      exit 1
+    else
+      color_msg $green "$l_count secs waited so far for echoVerticle jar to be starting ..."
+    fi
+  done
+  l_grep=1
+  l_loops=20
+  l_count=0
+  until [ $l_grep -eq 0 ]
+  do
+    sleep 1
+    grep "is STARTED" $pwd/java/nohup.out
+    l_grep=$?
+    l_count=$((l_count+1))
+    if [ "$l_count" -gt "$l_loops" ]
+    then
+      error "start echo verticle did not complete with is STARTED in time - you might want to check $pwd/java/nohup.out!"
+      exit 1
+    else
+      color_msg $green "$l_count secs waited so far for echoVerticle start to be completed ..."
+    fi
+  done
+}
+
+# kill the echoVerticle if it is running
+killEchoVerticle() {
+  pgrep -fla $echoVerticle
+  if [ $? -eq 0 ]
+  then
+    color_msg $blue "killing running echoVerticle"
+    pkill -f $echoVerticle
+  fi
+
 }
 
 if [ $# -lt 1 ]
@@ -41,11 +144,15 @@ do
       testJava
       ;;
     -p|--python)
+      echo "make sure you started the echo server manually ... with java/run"
       testPython
       ;;
     -a|--all)
       testJava
+      killEchoVerticle
+      startEchoVerticle
       testPython
+      killEchoVerticle
       ;;
   esac
 done

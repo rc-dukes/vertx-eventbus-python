@@ -2,14 +2,17 @@ package io.vertx.example.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
+import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 
 /**
  * Vert.x starter
@@ -26,7 +29,7 @@ public class VertxStarter {
   private VertxOptions options;
   private String exampleDir;
   private DeploymentOptions deploymentOptions;
-  private List<Verticle> startedVerticle = new ArrayList<Verticle>();
+  private Map<String, AbstractVerticle> startedVerticles = new HashMap<String, AbstractVerticle>();
   private Vertx vertx;
 
   /**
@@ -60,14 +63,21 @@ public class VertxStarter {
    * @param verticleClass
    */
   public void startVerticle(Verticle verticle) {
+    Handler<AsyncResult<String>> completionHandler = x -> {
+      if (x.succeeded()) {
+        if (verticle instanceof AbstractVerticle) {
+          AbstractVerticle averticle = (AbstractVerticle) verticle;
+          startedVerticles.put(averticle.deploymentID(), averticle);
+        }
+      }
+    };
     Consumer<Vertx> starter = vertx -> {
       try {
         if (deploymentOptions != null) {
-          vertx.deployVerticle(verticle, deploymentOptions);
+          vertx.deployVerticle(verticle, deploymentOptions, completionHandler);
         } else {
-          vertx.deployVerticle(verticle);
+          vertx.deployVerticle(verticle, completionHandler);
         }
-        startedVerticle.add(verticle);
       } catch (Throwable t) {
         handle(t);
       }
@@ -75,28 +85,40 @@ public class VertxStarter {
     if (options.getEventBusOptions().isClustered()) {
       Vertx.clusteredVertx(options, res -> {
         if (res.succeeded()) {
-          vertx = res.result();
-          starter.accept(vertx);
+          setVertx(res.result());
+          starter.accept(getVertx());
         } else {
           res.cause().printStackTrace();
         }
       });
     } else {
-      vertx = Vertx.vertx(options);
-      starter.accept(vertx);
+      setVertx(Vertx.vertx(options));
+      starter.accept(getVertx());
     }
   }
-  
+
+  /**
+   * undeploy the given abstract verticle
+   * 
+   * @param averticle
+   */
+  public void undeploy(AbstractVerticle averticle) {
+    getVertx().undeploy(averticle.deploymentID());
+    this.startedVerticles.remove(averticle.deploymentID());
+  }
+
   /**
    * close
    */
   public void close() {
-    if (vertx!=null)
-      vertx.close();
+    if (getVertx() != null) {
+      getVertx().close();
+    }
   }
 
   /**
    * wait for the given verticle to be deployed
+   * 
    * @param verticle
    * @throws Exception
    */
@@ -104,14 +126,17 @@ public class VertxStarter {
     int loopTime = 40; // 25 checks per second
     int timeLeft = MAX_DEPLOYMENT_TIME;
     while (timeLeft > 0) {
-      if (this.startedVerticle.contains(verticle)) {
-        String msg=String.format("%s deployed after %.1f secs",verticle.getClass().getSimpleName(),(MAX_DEPLOYMENT_TIME-timeLeft)/1000.0);
+      if (this.startedVerticles.containsValue(verticle)) {
+        String msg = String.format("%s deployed after %.1f secs",
+            verticle.getClass().getSimpleName(),
+            (MAX_DEPLOYMENT_TIME - timeLeft) / 1000.0);
         return msg;
       }
       Thread.sleep(loopTime);
       timeLeft -= loopTime;
     }
-    String msg=String.format("wait Deployed timed out after %.1f secs",MAX_DEPLOYMENT_TIME/1000.0);
+    String msg = String.format("wait Deployed timed out after %.1f secs",
+        MAX_DEPLOYMENT_TIME / 1000.0);
     throw new Exception(msg);
   }
 
@@ -194,6 +219,21 @@ public class VertxStarter {
   public static VertxStarter getStarter(boolean clustered) {
     VertxStarter starter = new VertxStarter(RX_EXAMPLES_JAVA_DIR, clustered);
     return starter;
+  }
+
+  /**
+   * @return the vertx
+   */
+  public Vertx getVertx() {
+    return vertx;
+  }
+
+  /**
+   * @param vertx
+   *          the vertx to set
+   */
+  public void setVertx(Vertx vertx) {
+    this.vertx = vertx;
   }
 
 }
