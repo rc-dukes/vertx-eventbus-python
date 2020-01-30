@@ -3,11 +3,17 @@
 matrix:
   include:
     - language: python
+      dist: xenial
       python: 3.7
       before_script:
         - cd python
+      addons:
+        apt:
+          packages: openjdk-8-jdk
+
       script:
-        - python -m unittest discover
+        - ./test -pa
+#       - python -m unittest discover
 
     - language: java
       dist: xenial

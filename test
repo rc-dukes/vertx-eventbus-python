@@ -147,6 +147,14 @@ do
       echo "make sure you started the echo server manually ... with java/run"
       testPython
       ;;
+    --pa)
+      # helper for travis
+      killEchoVerticle
+      startEchoVerticle
+      testPython
+      killEchoVerticle
+      ;;
+
     -a|--all)
       testJava
       killEchoVerticle
