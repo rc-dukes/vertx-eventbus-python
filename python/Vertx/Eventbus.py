@@ -7,6 +7,7 @@ import struct
 import time
 import threading
 import traceback
+from enum import IntEnum
 
 # Eventbus constructor
 #	input parameters
@@ -22,13 +23,12 @@ import traceback
 #		4) ReplyHandler - <address,function>
 #		5) writable - boolean {1: sendFrame, 0: receiving
 #
-# Eventbus state
-#	0 - not connected/failed
-#	1 - connecting
-#	2 - connected /open
-#	3 - closing
-#	4 - closed
-
+class State(IntEnum):
+    """ Eventbus state see https://github.com/vert-x3/vertx-bus-bower/blob/master/vertx-eventbus.js"""
+    CONNECTING=0
+    OPEN=1
+    CLOSING=2
+    CLOSED=3
 
 class Eventbus:
     ('TCP eventbus client for python')
@@ -58,12 +58,12 @@ class Eventbus:
         self.TimeInterval = TimeInterval
         # connect
         try:
-            self.state = 1
+            self.state = State.CONNECTING
             self.sock.connect((self.host, self.port))
             self.sock.settimeout(self.TimeOut)
             t1 = threading.Thread(target=self.receivingThread)
             t1.start()
-            self.state = 2
+            self.state = State.OPEN
         except IOError as e:
             self.printErr(1, 'SEVERE', str(e))
         except Exception as e:
@@ -72,7 +72,7 @@ class Eventbus:
 # Connection send and receive---------------------------------------------
 
     def isConnected(self):
-        if self.state is 2:
+        if self.state is State.OPEN:
             return True
         return False
 
@@ -83,12 +83,12 @@ class Eventbus:
 
     def receive(self):
         try:
-            if self.state < 3:  # closing socket
+            if self.state < State.CLOSING:  # closing socket
                 len_str = self.sock.recv(4)
             else:
                 return False
             len1 = struct.unpack("!i", len_str)[0]
-            if self.state < 3:  # closing socket
+            if self.state < State.CLOSING:  # closing socket
                 payload = self.sock.recv(len1)
             else:
                 return False
@@ -137,22 +137,22 @@ class Eventbus:
             # send error message
 
     def receivingThread(self):
-        while self.state < 3:  # 0,1,2
+        while self.state < State.CLOSING:  # 0,1,2
             if self.writable == False:
                 if self.receive() == False:
                     break
 
     def closeConnection(self, timeInterval=30):
-        if self.state == 1:
+        if self.state == State.CONNECTING:
             self.sock.close()
             return
-        self.state = 3
+        self.state = State.CLOSING
         time.sleep(timeInterval)
         try:
             self.sock.close()
         except Exception as e:
             self.printErr('Undefined Error', 'SEVERE', str(e))
-        self.state = 4
+        self.state = State.CLOSED
 
 
 # send, receive, register, unregister ------------------------------------
