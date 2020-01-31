@@ -9,7 +9,8 @@ matrix:
 #       - cd python
       addons:
         apt:
-          packages: openjdk-8-jdk
+          packages:
+            - openjdk-8-jdk
 
       script:
         - ./test -pa
