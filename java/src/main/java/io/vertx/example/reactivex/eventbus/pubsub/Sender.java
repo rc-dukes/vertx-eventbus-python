@@ -11,19 +11,17 @@ import io.vertx.example.util.VertxStarter;
  */
 public class Sender extends AbstractVerticle {
 
-  // Convenience method so you can run it in your IDE
-  public static void main(String[] args) {
-    VertxStarter.runClusteredExample(new Sender());
-  }
 
   @Override
   public void start(Promise<Void> promise) throws Exception {
-
     EventBus eb = vertx.eventBus();
-
     // Send a message every second
-
     vertx.setPeriodic(1000, v -> eb.publish("news-feed", "Some news!"));
     promise.complete();
+  }
+  
+  // Convenience method so you can run it in your IDE
+  public static void main(String[] args) {
+    VertxStarter.runClusteredExample(new Sender());
   }
 }
