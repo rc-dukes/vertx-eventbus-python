@@ -4,18 +4,10 @@ Vertx package
 Submodules
 ----------
 
-Vertx.DeliveryOption module
----------------------------
-
-.. automodule:: Vertx.DeliveryOption
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Vertx.Eventbus module
+Vertx.eventbus module
 ---------------------
 
-.. automodule:: Vertx.Eventbus
+.. automodule:: Vertx.eventbus
    :members:
    :undoc-members:
    :show-inheritance:

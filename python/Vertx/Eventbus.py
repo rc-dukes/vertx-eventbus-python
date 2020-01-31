@@ -9,6 +9,68 @@ import threading
 import traceback
 from enum import IntEnum
 
+# DeliveryOption constructor
+#	inside parameters
+#		1) replyAddress
+#		2) headers
+#		3) timeInterval for reply
+
+
+class DeliveryOption:
+    ('deliveryOption class describe headers and replyAddress')
+    def __init__(self,timeInterval=10.0):
+        """
+        construct me
+
+        Args:
+           timeInterval(float):
+        """
+        self.replyAddress = None
+        self.headers = {}
+        self.timeInterval = timeInterval
+
+    def addHeader(self, header, value):
+        """
+        add a header with the given header key and value
+
+        Args:
+           header(str):  the key of the header value to add
+           value(object): the value of the header value to add
+        """
+        self.headers[header] = value
+
+    def deleteHeader(self, header):
+        """
+        delete the given header
+
+        Args:
+           header(str):  the key of the header value to be deleted
+        """
+        del self.headers[header]
+
+    def addReplyAddress(self, replyAddress):
+        """
+        add a the given reply address
+
+        Args:
+           replyAddress(str):  the address to reply to
+        """
+        self.replyAddress = replyAddress
+
+    def deleteReplyAddress(self):
+        self.replyAddress = None
+
+    def setTimeInterval(self, time):
+        self.timeInterval = time
+
+class State(IntEnum):
+    """ Eventbus state see https://github.com/vert-x3/vertx-bus-bower/blob/master/vertx-eventbus.js"""
+    CONNECTING=0
+    OPEN=1
+    CLOSING=2
+    CLOSED=3
+
+
 # Eventbus constructor
 #	input parameters
 #		1) instance
@@ -23,12 +85,6 @@ from enum import IntEnum
 #		4) ReplyHandler - <address,function>
 #		5) writable - boolean {1: sendFrame, 0: receiving
 #
-class State(IntEnum):
-    """ Eventbus state see https://github.com/vert-x3/vertx-bus-bower/blob/master/vertx-eventbus.js"""
-    CONNECTING=0
-    OPEN=1
-    CLOSING=2
-    CLOSED=3
 
 class Eventbus:
     """
@@ -39,6 +95,7 @@ class Eventbus:
     def __init__(self, instance, host='localhost', port=7000, TimeOut=0.1, TimeInterval=10.0,debug=False):
         """
         constructor
+        
         Args:
             host(str): the host to connect to
         """
@@ -77,6 +134,13 @@ class Eventbus:
         return False
 
     def sendFrame(self, message_s):
+        """
+        send the given message
+
+        Args:
+           message_s (str): the message to be sent.
+
+        """
         message = message_s.encode('utf-8')
         frame = struct.pack('!I', len(message)) + message
         self.sock.sendall(frame)

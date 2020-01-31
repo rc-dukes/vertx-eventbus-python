@@ -1,7 +1,7 @@
 import unittest
 
-import Vertx.DeliveryOption as DeliveryOption
-import Vertx.Eventbus as Eventbus
+from Vertx.eventbus import DeliveryOption
+from Vertx.eventbus import Eventbus
 
 
 #replyHandler (self,error,message)
@@ -21,13 +21,13 @@ class Client(unittest.TestCase):
 
     def test_send(self):
         c = Client()
-        eb = Eventbus.Eventbus(c, 'localhost', 7001,debug=True)
+        eb = Eventbus(c, 'localhost', 7001,debug=True)
 
         #jsonObject -body
         body = {'msg': 'test1', }
 
         # DeliveryOption
-        do = DeliveryOption.DeliveryOption()
+        do = DeliveryOption()
         do.addHeader('type', 'text')
         do.addHeader('size', 'small')
         do.addReplyAddress('echo')

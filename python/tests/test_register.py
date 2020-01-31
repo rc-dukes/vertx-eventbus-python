@@ -1,5 +1,5 @@
 import unittest
-import Vertx.Eventbus as Eventbus
+from Vertx.eventbus import Eventbus
 
 
 #handlers (self,message)
@@ -15,7 +15,7 @@ class Client(unittest.TestCase):
 
     def test_publish(self):
         c = Client()
-        eb = Eventbus.Eventbus(self, 'localhost', 7001,debug=True)
+        eb = Eventbus(self, 'localhost', 7001,debug=True)
 
         eb.registerHandler('echo', Client.Handler)
         assert(eb.Handlers['echo'] != None)
