@@ -65,7 +65,7 @@ testJava() {
 testPython() {
   cd $pwd/python
   color_msg $blue "running python unit tests"
-  python -m unittest
+  python3 -m unittest
   if [ $? -eq 0 ]
   then
     color_msg $green "python unit tests successful!"
