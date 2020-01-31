@@ -6,13 +6,17 @@ matrix:
       dist: xenial
       python: 3.7
       before_script:
-#       - cd python
+        # prepare the java installation
+        - cd java
+        - mvn clean install -D gpg.skip
+        - cd ..
       addons:
         apt:
           packages:
             - openjdk-8-jdk
 
       script:
+        # start the test script which will run the echoServer
         - ./test -pa
 #       - python -m unittest discover
 
