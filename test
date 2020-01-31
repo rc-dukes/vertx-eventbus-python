@@ -71,6 +71,7 @@ testPython() {
     color_msg $green "python unit tests successful!"
   else
     color_msg $red "python unit tests failed"
+    exit 1
   fi
 }
 
@@ -120,6 +121,8 @@ startEchoVerticle() {
       color_msg $green "$l_count secs waited so far for echoVerticle start to be completed ..."
     fi
   done
+  # give some extra time
+  sleep 2
 }
 
 # kill the echoVerticle if it is running
