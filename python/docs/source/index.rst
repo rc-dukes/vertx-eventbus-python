@@ -6,6 +6,9 @@
 Welcome to vertx-eventbus-python's documentation!
 =================================================
 
+.. automodule:: Vertx
+    :members:
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
