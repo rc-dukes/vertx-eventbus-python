@@ -1,13 +1,14 @@
 # vertx-eventbus-python
 [![Join the chat at https://gitter.im/vertx-eventbus-python/community](https://badges.gitter.im/vertx-eventbus-python/community.svg)](https://gitter.im/vertx-eventbus-python/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Travis (.org)](https://img.shields.io/travis/rc-dukes/vertx-eventbus-python.svg)](https://travis-ci.org/rc-dukes/vertx-eventbus-python)
-[![GitHub issues](https://img.shields.io/github/issues/rc-dukes/vertx-eventbus-python.svg)](https://github.com/rc-dukes/vertx-eventbus-python/issues)
-[![GitHub issues](https://img.shields.io/github/issues-closed/rc-dukes/vertx-eventbus-python.svg)](https://github.com/rc-dukes/vertx-eventbus-python/issues/?q=is%3Aissue+is%3Aclosed)
+github.com/rc-dukes/vertx-eventbus-python/issues/?q=is%3Aissue+is%3Aclosed)
 [![Docs](https://img.shields.io/readthedocs/vertx-eventbus-python/latest.svg)](https://vertx-eventbus-python.readthedocs.io/en/latest/)
 
 [![GitHub](https://img.shields.io/github/license/rc-dukes/vertx-eventbus-python.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![BITPlan](http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/198px-BITPlanLogoFontLessTransparent.png)](http://www.bitplan.com)
 
+[![GitHub issues](https://img.shields.io/github/issues/rc-dukes/vertx-eventbus-python.svg)](https://github.com/rc-dukes/vertx-eventbus-python/issues)
+[![GitHub issues](https://img.shields.io/github/issues-closed/rc-dukes/vertx-eventbus-python.svg)](https://
 Python vertx eventbus bridge
 
 ## State of project
