@@ -10,7 +10,7 @@ Python vertx eventbus bridge
 
 ## State of project
 This project was not forked but copied to make it self-contained on 2020-01-30.
-At this time the code is not stable yet and tests fail - please stay tuned ...
+There are unit test for java and python now that run successfully on 4 different platforms.
 
 ## Documentation
 [Wiki](http://wiki.bitplan.com/index.php/Vertx-eventbus-python)
