@@ -31,17 +31,16 @@ class State(IntEnum):
     CLOSED=3
 
 class Eventbus:
-    """TCP eventbus client for python
-    :param host: the host to connect to
-    :type host: str, optional
-    :param port: the port to connect to
-    :type port: int, optional
+    """
+    TCP eventbus client for python
     """
 
     # constructor
     def __init__(self, instance, host='localhost', port=7000, TimeOut=0.1, TimeInterval=10.0,debug=False):
         """
         constructor
+        Args:
+            host(str): the host to connect to
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.Handlers = {}

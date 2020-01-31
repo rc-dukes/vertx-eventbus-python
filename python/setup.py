@@ -9,5 +9,5 @@ setup(
     maintainer='Wolfgang Fahl',
     license='MIT License',
     description='',
-    long_description=open('README').read(),
+    long_description='see https://github.com/rc-dukes/vertx-eventbus-python'
 )

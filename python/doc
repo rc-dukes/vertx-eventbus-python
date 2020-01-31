@@ -1,5 +1,6 @@
 #!/bin/bash
 # WF 2020-01-31
-sphinx-apidoc -o docs/source .
+sphinx-apidoc -f -o docs/source Vertx
 cd docs
-make html
+make clean html
+open build/html/index.html
