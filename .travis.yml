@@ -6,9 +6,9 @@ matrix:
       dist: xenial
       python: 3.7
       before_script:
-        # prepare the java installation
+        # prepare the java fat jar installation - so that it will not download anything anymore when the test script runs
         - cd java
-        - mvn clean install -D gpg.skip
+        - mvn package -D skipTests -D createAssembly=true
         - cd ..
       addons:
         apt:

@@ -86,7 +86,7 @@ startEchoVerticle() {
   nohup $pwd/java/run&
   local l_grep=1
   local l_count=0
-  local l_loops=20
+  local l_loops=40
   until [ $l_grep -eq 0 ]
   do
     sleep 1
@@ -103,7 +103,7 @@ startEchoVerticle() {
     fi
   done
   l_grep=1
-  l_loops=20
+  l_loops=40
   l_count=0
   until [ $l_grep -eq 0 ]
   do
