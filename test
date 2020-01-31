@@ -44,6 +44,7 @@ usage() {
   echo " -a|--all: run all tests"
   echo " -j|--java: run java tests"
   echo " -p|--python: run python tests"
+  echo " -pa: run python tests with automatic start of echoServer"
   exit 1
 }
 
@@ -76,7 +77,7 @@ testPython() {
 # start the java  based echo Verticle
 startEchoVerticle() {
   color_msg $blue "starting echo Verticle"
-  local l_nohup=$pwd/java/nohup.out
+  local l_nohup=$pwd/nohup.out
   # if there is a nohup.out remove it
   if [ -f $l_nohup ]
   then
@@ -107,7 +108,7 @@ startEchoVerticle() {
   until [ $l_grep -eq 0 ]
   do
     sleep 1
-    grep "is STARTED" $pwd/java/nohup.out
+    grep "is STARTED" $l_nohup
     l_grep=$?
     l_count=$((l_count+1))
     if [ "$l_count" -gt "$l_loops" ]
@@ -151,7 +152,7 @@ do
       testJava
       ;;
     -p|--python)
-      echo "make sure you started the echo server manually ... with java/run"
+      echo "make sure you started the echo server manually ... with java/run or by using the -pa option"
       testPython
       ;;
     -pa)
