@@ -3,6 +3,8 @@
 [![Travis (.org)](https://img.shields.io/travis/rc-dukes/vertx-eventbus-python.svg)](https://travis-ci.org/rc-dukes/vertx-eventbus-python)
 [![GitHub issues](https://img.shields.io/github/issues/rc-dukes/vertx-eventbus-python.svg)](https://github.com/rc-dukes/vertx-eventbus-python/issues)
 [![GitHub issues](https://img.shields.io/github/issues-closed/rc-dukes/vertx-eventbus-python.svg)](https://github.com/rc-dukes/vertx-eventbus-python/issues/?q=is%3Aissue+is%3Aclosed)
+[![Docs](https://img.shields.io/readthedocs/rc-dukes/vertx-eventbus-python/latest?style=flat-square)](https://vertx-eventbus-python.readthedocs.io/en/latest/)
+
 [![GitHub](https://img.shields.io/github/license/rc-dukes/vertx-eventbus-python.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![BITPlan](http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/198px-BITPlanLogoFontLessTransparent.png)](http://www.bitplan.com)
 

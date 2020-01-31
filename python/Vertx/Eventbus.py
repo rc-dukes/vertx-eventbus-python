@@ -35,6 +35,13 @@ class Eventbus:
 
     # constructor
     def __init__(self, instance, host='localhost', port=7000, TimeOut=0.1, TimeInterval=10.0,debug=False):
+        """
+        constructor
+        :param host: the host to connect to
+        :type host: str, optional
+        :param port: the port to connect to
+        :type port: int, optional
+        """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.Handlers = {}
         self.ReplyHandler = {}
