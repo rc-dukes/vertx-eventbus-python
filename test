@@ -78,6 +78,7 @@ testPython() {
 # start the java  based echo Verticle
 startEchoVerticle() {
   color_msg $blue "starting echo Verticle"
+  cd $pwd
   local l_nohup=$pwd/nohup.out
   # if there is a nohup.out remove it
   if [ -f $l_nohup ]
