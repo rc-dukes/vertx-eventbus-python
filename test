@@ -76,7 +76,12 @@ testPython() {
 # start the java  based echo Verticle
 startEchoVerticle() {
   color_msg $blue "starting echo Verticle"
-  rm $pwd/java/nohup.out
+  local l_nohup=$pwd/java/nohup.out
+  # if there is a nohup.out remove it
+  if [ -f $l_nohup ]
+  then
+    rm $l_nohup
+  fi
   nohup $pwd/java/run&
   local l_grep=1
   local l_count=0
@@ -90,6 +95,7 @@ startEchoVerticle() {
     if [ "$l_count" -gt "$l_loops" ]
     then
       error "failed to start echo verticle"
+      cat $l_nohup
       exit 1
     else
       color_msg $green "$l_count secs waited so far for echoVerticle jar to be starting ..."
@@ -106,7 +112,8 @@ startEchoVerticle() {
     l_count=$((l_count+1))
     if [ "$l_count" -gt "$l_loops" ]
     then
-      error "start echo verticle did not complete with is STARTED in time - you might want to check $pwd/java/nohup.out!"
+      error "start echo verticle did not complete with is STARTED in time"
+      cat $l_nohup
       exit 1
     else
       color_msg $green "$l_count secs waited so far for echoVerticle start to be completed ..."
