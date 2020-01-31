@@ -5,6 +5,9 @@ setup(
     version='3.8.5',
 
     packages=['Vertx',],
-    license='Apache Software License 2.0',
+    author='Jayamine Alupotha',
+    maintainer='Wolfgang Fahl',
+    license='MIT License',
+    description='',
     long_description=open('README').read(),
 )
