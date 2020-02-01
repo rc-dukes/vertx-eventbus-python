@@ -10,7 +10,6 @@ class Client(unittest.TestCase):
     result = {'msg': 'test', }
 
     def test_publish(self):
-        c = Client()
         eb = Eventbus(self, 'localhost', 7001,debug=True)
 
 

@@ -86,7 +86,7 @@ class Eventbus:
 
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.Handlers = {}
+        self.handlers = {}
         self.ReplyHandler = {}
         self.host = host
         self.port = port
@@ -135,7 +135,7 @@ class Eventbus:
         frame = struct.pack('!I', len(message)) + message
         self.sock.sendall(frame)
 
-    def receive(self):
+    def __receive(self):
         try:
             if self.state < State.CLOSING:  # closing socket
                 len_str = self.sock.recv(4)
@@ -157,8 +157,8 @@ class Eventbus:
                 else:
                     try:
                         # handlers
-                        if self.Handlers[message['address']] != None:
-                            for handler in self.Handlers[message['address']]:
+                        if self.handlers[message['address']] != None:
+                            for handler in self.handlers[message['address']]:
                                 handler(self.this, message)
                             self.ReplyHandler = None
 
@@ -196,7 +196,7 @@ class Eventbus:
         """
         while self.state < State.CLOSING:  # 0,1,2
             if self.writable == False:
-                if self.receive() == False:
+                if self.__receive() == False:
                     break
 
     def close(self, timeInterval=30):
@@ -318,8 +318,8 @@ class Eventbus:
             message = None
             if callable(handler) == True:
                 try:
-                    if (address not in self.Handlers.keys()) or (self.Handlers[address] == None):
-                        self.Handlers[address] = []
+                    if (address not in self.handlers.keys()) or (self.handlers[address] == None):
+                        self.handlers[address] = []
                         message = json.dumps(
                             {'type': 'register', 'address': address, })
                         self.writable = True
@@ -327,10 +327,10 @@ class Eventbus:
                         self.writable = False
                         time.sleep(self.timeOut)
                 except KeyError:
-                    self.Handlers[address] = []
+                    self.handlers[address] = []
 
                 try:
-                    self.Handlers[address].append(handler)
+                    self.handlers[address].append(handler)
                 except Exception as e:
                     self.printErr(
                         4, 'SEVERE', 'Registration failed\n' + str(e))
@@ -350,12 +350,12 @@ class Eventbus:
         if self.isOpen():
             message = None
             try:
-                if self.Handlers[address] != None:
-                    if len(self.Handlers) == 1:
+                if self.handlers[address] != None:
+                    if len(self.handlers) == 1:
                         message = json.dumps(
                             {'type': 'unregister', 'address': address, })
                         self.__sendFrame(message)
-                    del self.Handlers[address]
+                    del self.handlers[address]
             except:
                 self.printErr(5, 'SEVERE', 'Unknown address:' + address)
 

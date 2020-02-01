@@ -17,10 +17,10 @@ class TestRegister(unittest.TestCase):
         eb = Eventbus(self, 'localhost', 7001,debug=True)
 
         eb.registerHandler('echo', self.Handler)
-        assert(eb.Handlers['echo'] != None)
+        assert(eb.handlers['echo'] != None)
 
         eb.unregisterHandler('echo')
-        if eb.Handlers != None:
+        if eb.handlers != None:
             assert(1)
 
         # close after 2 seconds
