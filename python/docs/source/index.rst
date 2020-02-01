@@ -6,16 +6,18 @@
 vertx-eventbus-python
 =====================
 
-.. image:: https://vertx.io/assets/logo-sm.png
+.. image:: ls
     :alt: Vert.x logo
 
-`Vert.x <https://vertx.io/>`_
+This is a python client for the `Vert.x <https://vertx.io/>`_
 `Vert.x-tcp-eventbus-bridge <https://vertx.io/docs/vertx-tcp-eventbus-bridge/java/>`_
 
 
-Documentation
--------------
+Links
+-----
+* `Github <https://github.com/rc-dukes/vertx-eventbus-python>`_
 * `Wiki <http://wiki.bitplan.com/index.php/Vertx-eventbus-python>`_
+* `Chat <https://gitter.im/vertx-eventbus-python/community>`_
 
 Vertx.eventbus module
 ---------------------
