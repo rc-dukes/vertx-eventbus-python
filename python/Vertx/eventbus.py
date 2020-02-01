@@ -104,7 +104,7 @@ class Eventbus:
             self.state = State.CONNECTING
             self.sock.connect((self.host, self.port))
             self.sock.settimeout(self.timeOut)
-            t1 = threading.Thread(target=self.receivingThread)
+            t1 = threading.Thread(target=self.__receivingThread)
             t1.start()
             self.state = State.OPEN
         except IOError as e:
@@ -112,9 +112,9 @@ class Eventbus:
         except Exception as e:
             self.printErr('Undefined Error', 'SEVERE', str(e))
 
-    def isConnected(self):
+    def isOpen(self):
         """
-        Checks if the eventbus is connected that is it's state is OPEN.
+        Checks if the eventbus state is OPEN.
 
         Returns:
            bool: True if State is OPEN else False
@@ -190,13 +190,16 @@ class Eventbus:
             return False
             # send error message
 
-    def receivingThread(self):
+    def __receivingThread(self):
+        """
+        receive loop to be started in separate Thread
+        """
         while self.state < State.CLOSING:  # 0,1,2
             if self.writable == False:
                 if self.receive() == False:
                     break
 
-    def closeConnection(self, timeInterval=30):
+    def close(self, timeInterval=30):
         """
         close the eventbus connection after staying in the CLOSING state
         for the given timeInterval
@@ -224,7 +227,7 @@ class Eventbus:
             deliveryOption(DeliveryOption): delivery options to be set - default: None
             replyHandler(function): callback for replies - if deliveryOption is callable it will be used as a replyHandler
         """
-        if self.isConnected() is True:
+        if self.isOpen():
             message = None
 
             if callable(deliveryOption) == True:
@@ -281,7 +284,7 @@ class Eventbus:
             deliveryOption(DeliveryOption): delivery options to be set - default: None
 
         """
-        if self.isConnected() is True:
+        if self.isOpen():
             if deliveryOption != None:
                 headers = deliveryOption.headers
                 replyAddress = deliveryOption.replyAddress
@@ -311,7 +314,7 @@ class Eventbus:
             address(str): the target address to send the message to
             handler(function): a handler for the address
         """
-        if self.isConnected() is True:
+        if self.isOpen():
             message = None
             if callable(handler) == True:
                 try:
@@ -344,7 +347,7 @@ class Eventbus:
         Args:
             address(str): the target address to send the message to
         """
-        if self.isConnected() is True:
+        if self.isOpen():
             message = None
             try:
                 if self.Handlers[address] != None:

@@ -31,7 +31,7 @@ class Client(unittest.TestCase):
         eb.publish('echo', body)
 
         # close after 2 seconds
-        eb.closeConnection(2)
+        eb.close(2)
 
 
 if __name__ == '__main__':

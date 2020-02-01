@@ -48,7 +48,7 @@ class Client(unittest.TestCase):
         eb.send('echo', body, do)
 
         # close after 1 seconds
-        eb.closeConnection(1)
+        eb.close(1)
         assert(Client.result == {'msg': 'test2', })
 
 if __name__ == '__main__':
