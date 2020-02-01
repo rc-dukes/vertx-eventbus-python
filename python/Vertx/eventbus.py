@@ -73,7 +73,7 @@ class Eventbus:
     Vert.x TCP eventbus client for python
     """
 
-    def __init__(self, instance, host='localhost', port=7000, timeOut=0.1, timeInterval=10.0,debug=False):
+    def __init__(self, host='localhost', port=7000, timeOut=0.1, timeInterval=10.0,debug=False):
         """
         constructor
 
@@ -90,7 +90,6 @@ class Eventbus:
         self.ReplyHandler = {}
         self.host = host
         self.port = port
-        self.this = instance
         self.debug=debug
         self.writable=True
         if timeOut < 0.01:
@@ -109,9 +108,12 @@ class Eventbus:
             self.state = State.OPEN
         except IOError as e:
             self.printErr(1, 'SEVERE', str(e))
+            self.close(self.timeInterval)
+            raise e
         except Exception as e:
             self.printErr('Undefined Error', 'SEVERE', str(e))
-
+        
+      
     def isOpen(self):
         """
         Checks if the eventbus state is OPEN.
@@ -159,7 +161,7 @@ class Eventbus:
                         # handlers
                         if self.handlers[message['address']] != None:
                             for handler in self.handlers[message['address']]:
-                                handler(self.this, message)
+                                handler(message)
                             self.ReplyHandler = None
 
                     except KeyError:
@@ -167,14 +169,14 @@ class Eventbus:
                         try:
                             if self.ReplyHandler['address'] == message['address']:
                                 self.ReplyHandler['replyHandler'](
-                                    self.this, None, message)
+                                    None, message)
                                 self.ReplyHandler = None
                         except KeyError:
                             print('no handlers for ' + message['address'])
 
             elif message['type'] == 'err':
                 try:
-                    self.ReplyHandler['replyHandler'](self.this, message, None)
+                    self.ReplyHandler['replyHandler'](message, None)
                     self.ReplyHandler = None
                 except:
                     pass
@@ -265,7 +267,7 @@ class Eventbus:
                 if timeInterval / self.timeOut == i and self.ReplyHandler != None:
                     try:
                         self.ReplyHandler['replyHandler'](
-                            self.this, 'Time Out Error', None)
+                            'Time Out Error', None)
                         self.ReplyHandler = None
                         break
                     except:
@@ -306,61 +308,49 @@ class Eventbus:
         else:
             self.printErr(3, 'SEVERE', 'INVALID_STATE_ERR')
 
-    def registerHandler(self, address, handler):
+    def registerHandler(self, address, callback, headers=None):
         """
         register a handler
 
         Args:
-            address(str): the target address to send the message to
-            handler(function): a handler for the address
+            address(str): the address to register a handler for
+            callback(function): a callback for the address
         """
-        if self.isOpen():
-            message = None
-            if callable(handler) == True:
-                try:
-                    if (address not in self.handlers.keys()) or (self.handlers[address] == None):
-                        self.handlers[address] = []
-                        message = json.dumps(
-                            {'type': 'register', 'address': address, })
-                        self.writable = True
-                        self.__sendFrame(message)
-                        self.writable = False
-                        time.sleep(self.timeOut)
-                except KeyError:
-                    self.handlers[address] = []
+        if not self.isOpen():
+            raise Exception("eventbus is not open when trying to register Handler for %s" % address)
+        if not callable(callback):
+            raise Exception("callback for registerHandler must be callable")
+        if not address in self.handlers:
+            self.handlers[address]=[]
+            message = json.dumps(
+                {'type': 'register', 'address': address, })
+            self.__sendFrame(message)
+        self.handlers[address].append(callback)   
 
-                try:
-                    self.handlers[address].append(handler)
-                except Exception as e:
-                    self.printErr(
-                        4, 'SEVERE', 'Registration failed\n' + str(e))
-            else:
-                self.printErr(
-                    4, 'SEVERE', 'Registration failed. Function is not callable\n')
-        else:
-            self.printErr(3, 'SEVERE', 'INVALID_STATE_ERR')
-
-    def unregisterHandler(self, address):
+    def unregisterHandler(self, address,callback):
         """
-        unregister a handler
+        unregister a callback for a given address
+        if there is more than one callback for the address it will be remove from the handler list
+        if there is only one callback left an unregister message will be sent over the bus and then
+        the address is fully removed
 
         Args:
-            address(str): the target address to send the message to
+            address(str): the address to unregister the handler for
+            callback(function): the callback to unregister
         """
-        if self.isOpen():
-            message = None
-            try:
-                if self.handlers[address] != None:
-                    if len(self.handlers) == 1:
-                        message = json.dumps(
-                            {'type': 'unregister', 'address': address, })
-                        self.__sendFrame(message)
-                    del self.handlers[address]
-            except:
-                self.printErr(5, 'SEVERE', 'Unknown address:' + address)
-
-        else:
-            print('error occured: INVALID_STATE_ERR')
+        if not self.isOpen():
+            raise Exception("eventbus is not open when trying to unregister handler for %s" % (address))
+        if address not in self.handlers:
+            raise Exception("can't unregister address %s - address not registered" % (address))
+        callbacks=self.handlers[address]
+        if callback not in callbacks:
+            raise Exception("can't unregister callback for %s - callback not registered" % (address))    
+        callbacks.remove(callback)
+        if len(callbacks) == 0:
+            message = json.dumps(
+            {'type': 'unregister', 'address': address, })
+            self.__sendFrame(message)
+            del self.handlers[address]
 
     # print Error
     # 1 - connection errors

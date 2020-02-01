@@ -1,25 +1,26 @@
 import unittest
 from Vertx.eventbus import Eventbus
 
+class Handler(object):
+    result=None
+    
+    def handle(self, message):
+        if message != None:
+            self.result = message['body']
+            
 class TestRegister(unittest.TestCase):
     """
     test registerHandler 
     """
     result = None
 
-    # Handler
-    def Handler(self, message):
-        if message != None:
-            self.result = message['body']
-            print(self.result)
-
     def test_publish(self):
-        eb = Eventbus(self, 'localhost', 7001,debug=True)
-
-        eb.registerHandler('echo', self.Handler)
+        eb = Eventbus('localhost', 7001,debug=True)
+        handler=Handler();
+        eb.registerHandler('echo', handler.handle)
         assert(eb.handlers['echo'] != None)
 
-        eb.unregisterHandler('echo')
+        eb.unregisterHandler('echo',handler.handle)
         if eb.handlers != None:
             assert(1)
 
