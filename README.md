@@ -8,10 +8,14 @@
 [![BITPlan](http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/198px-BITPlanLogoFontLessTransparent.png)](http://www.bitplan.com)
 
 
-Python vertx eventbus bridge
+[![Vert.x](https://vertx.io/assets/logo-sm.png)](https://vertx.io/) 
+
+[Python](https://www.python.org/) [vertx](https://vertx.io/) [tcp eventbus bridge](https://vertx.io/docs/vertx-tcp-eventbus-bridge/java/) client
 
 ## State of project
+This is alpha code which shows a proof of concept.
 This project was not forked but copied to make it self-contained on 2020-01-30.
+Please comment on the chat what your needs are or directly file issues.
 There are unit test for java and python now that run successfully on 4 different platforms.
 
 ## Documentation
