@@ -19,13 +19,25 @@ Links
 * `Wiki <http://wiki.bitplan.com/index.php/Vertx-eventbus-python>`_
 * `Chat <https://gitter.im/vertx-eventbus-python/community>`_
 
+API
+===
 Vertx.eventbus module
 ---------------------
 
-.. automodule:: Vertx.eventbus
+.. autoclass:: Vertx.eventbus.Eventbus
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. autoclass:: Vertx.eventbus.State
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+.. autoclass:: Vertx.eventbus.DeliveryOption
+  :members:
+  :undoc-members:
+  :show-inheritance:
 
 .. toctree::
    :maxdepth: 2

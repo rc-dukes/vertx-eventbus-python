@@ -11,23 +11,19 @@ import threading
 import traceback
 from enum import IntEnum
 
-# DeliveryOption constructor
-#	inside parameters
-#		1) replyAddress
-#		2) headers
-#		3) timeInterval for reply
-
-
 class DeliveryOption:
-    ('deliveryOption class describe headers and replyAddress')
-    def __init__(self,timeInterval=10.0):
+    """
+
+    """
+    def __init__(self,replyAddress=None,timeInterval=10.0):
         """
         construct me
 
         Args:
+           replyAddress(str): the address to potentialy reply to - default: None
            timeInterval(float):
         """
-        self.replyAddress = None
+        self.replyAddress = replyAddress
         self.headers = {}
         self.timeInterval = timeInterval
 
@@ -72,36 +68,20 @@ class State(IntEnum):
     CLOSING=2
     CLOSED=3
 
-
-# Eventbus constructor
-#	input parameters
-#		1) instance
-#		1) host	- String
-#		2) port	- integer(>2^10-1)
-#		3) timeOut - float- receive timeOut
-#		4) TimeInterval -float -sleep time
-#	inside parameters
-#		1) socket
-#		2) handlers - List<String address,array<functions/handler>>
-#		3) state -integer
-#		4) ReplyHandler - <address,function>
-#		5) writable - boolean {1: sendFrame, 0: receiving
-#
-
 class Eventbus:
     """
-    TCP eventbus client for python
+    Vert.x TCP eventbus client for python
     """
 
-    # constructor
-    def __init__(self, instance, host='localhost', port=7000, timeOut=0.1, TimeInterval=10.0,debug=False):
+    def __init__(self, instance, host='localhost', port=7000, timeOut=0.1, timeInterval=10.0,debug=False):
         """
         constructor
 
         Args:
             host(str): the host to connect to - default: 'localhost'
             port(int): the port to use - default: 7000
-
+            timeOut(float): time in secs to be used as the socket timeout - default: 100 msecs
+            timeInterval(float): time in secs - default: 10 secs
             debug(bool): True if debugging should be enabled - default: False
 
         """
@@ -118,7 +98,7 @@ class Eventbus:
         else:
             self.timeOut = timeOut
 
-        self.TimeInterval = TimeInterval
+        self.timeInterval = timeInterval
         # connect
         try:
             self.state = State.CONNECTING
@@ -132,9 +112,13 @@ class Eventbus:
         except Exception as e:
             self.printErr('Undefined Error', 'SEVERE', str(e))
 
-# Connection send and receive---------------------------------------------
-
     def isConnected(self):
+        """
+        Checks if the eventbus is connected that is it's state is OPEN.
+
+        Returns:
+           bool: True if State is OPEN else False
+        """
         if self.state is State.OPEN:
             return True
         return False
@@ -213,6 +197,14 @@ class Eventbus:
                     break
 
     def closeConnection(self, timeInterval=30):
+        """
+        close the eventbus connection after staying in the CLOSING state
+        for the given timeInterval
+
+        Args:
+            timeInterval(float): the number of seconds to sleep before actually closing the eventbus - default: 30 seconds
+
+        """
         if self.state == State.CONNECTING:
             self.sock.close()
             return
@@ -224,15 +216,14 @@ class Eventbus:
             self.printErr('Undefined Error', 'SEVERE', str(e))
         self.state = State.CLOSED
 
-
-# send, receive, register, unregister ------------------------------------
-
-    # address-string
-    # body - json object
-    #deliveryOption - object
-    #replyHandler -function
-
     def send(self, address, body=None, deliveryOption=None, replyHandler=None):
+        """
+        Args:
+            address(str): the target address to send the message to
+            body(str): the body of the message e.g. a JSON object- default: None
+            deliveryOption(DeliveryOption): delivery options to be set - default: None
+            replyHandler(function): callback for replies - if deliveryOption is callable it will be used as a replyHandler
+        """
         if self.isConnected() is True:
             message = None
 
@@ -247,7 +238,7 @@ class Eventbus:
             else:
                 headers = None
                 replyAddress = None
-                timeInterval = self.TimeInterval
+                timeInterval = self.timeInterval
 
             message = json.dumps({'type': 'send', 'address': address,
                                   'replyAddress': replyAddress, 'headers': headers, 'body': body, })
@@ -280,11 +271,16 @@ class Eventbus:
         else:
             self.printErr(3, 'SEVERE', 'INVALID_STATE_ERR')
 
-    # address-string
-    # body - json object
-    #deliveryOption -object
     def publish(self, address, body, deliveryOption=None):
+        """
+        publish
 
+        Args:
+            address(str): the target address to send the message to
+            body(str): the body of the message e.g. a JSON object- default: None
+            deliveryOption(DeliveryOption): delivery options to be set - default: None
+
+        """
         if self.isConnected() is True:
             if deliveryOption != None:
                 headers = deliveryOption.headers
@@ -307,11 +303,14 @@ class Eventbus:
         else:
             self.printErr(3, 'SEVERE', 'INVALID_STATE_ERR')
 
-    # address-string
-    #deliveryOption -object
-    #replyHandler -function
     def registerHandler(self, address, handler):
-
+        """
+        register a handler
+        
+        Args:
+            address(str): the target address to send the message to
+            handler(function): a handler for the address
+        """
         if self.isConnected() is True:
             message = None
             if callable(handler) == True:
@@ -338,10 +337,13 @@ class Eventbus:
         else:
             self.printErr(3, 'SEVERE', 'INVALID_STATE_ERR')
 
-    # address-string
-    #deliveryOption -object
-    #replyHandler -function
     def unregisterHandler(self, address):
+        """
+        unregister a handler
+        
+        Args:
+            address(str): the target address to send the message to
+        """
         if self.isConnected() is True:
             message = None
             try:
