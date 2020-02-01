@@ -123,7 +123,7 @@ class Eventbus:
             return True
         return False
 
-    def sendFrame(self, message_s):
+    def __sendFrame(self, message_s):
         """
         send the given message
 
@@ -245,7 +245,7 @@ class Eventbus:
             # print('sent'+message)
 
             self.writable = True
-            self.sendFrame(message)
+            self.__sendFrame(message)
 
             # replyHandler
             if replyAddress != None and replyHandler != None:
@@ -297,7 +297,7 @@ class Eventbus:
                     {'type': 'send', 'address': address, 'headers': headers, 'body': body, })
 
             self.writable = True
-            self.sendFrame(message)
+            self.__sendFrame(message)
             self.writable = False
 
         else:
@@ -306,7 +306,7 @@ class Eventbus:
     def registerHandler(self, address, handler):
         """
         register a handler
-        
+
         Args:
             address(str): the target address to send the message to
             handler(function): a handler for the address
@@ -320,7 +320,7 @@ class Eventbus:
                         message = json.dumps(
                             {'type': 'register', 'address': address, })
                         self.writable = True
-                        self.sendFrame(message)
+                        self.__sendFrame(message)
                         self.writable = False
                         time.sleep(self.timeOut)
                 except KeyError:
@@ -340,7 +340,7 @@ class Eventbus:
     def unregisterHandler(self, address):
         """
         unregister a handler
-        
+
         Args:
             address(str): the target address to send the message to
         """
@@ -351,7 +351,7 @@ class Eventbus:
                     if len(self.Handlers) == 1:
                         message = json.dumps(
                             {'type': 'unregister', 'address': address, })
-                        self.sendFrame(message)
+                        self.__sendFrame(message)
                     del self.Handlers[address]
             except:
                 self.printErr(5, 'SEVERE', 'Unknown address:' + address)
@@ -359,7 +359,7 @@ class Eventbus:
         else:
             print('error occured: INVALID_STATE_ERR')
 
-# Errors -----------------------------------------------------------------
+    # print Error
     # 1 - connection errors
     # 2 - unknown type of the received message
     # 3 - invalid state errors
