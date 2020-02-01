@@ -26,7 +26,6 @@ Vertx.eventbus module
 
 .. autoclass:: Vertx.eventbus.Eventbus
    :members:
-   :undoc-members:
    :show-inheritance:
 
 .. autoclass:: Vertx.eventbus.State
