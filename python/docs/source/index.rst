@@ -5,8 +5,25 @@
 
 vertx-eventbus-python
 =====================
-.. automodule:: Vertx
-    :members:
+
+.. image:: https://vertx.io/assets/logo-sm.png
+    :alt: Vert.x logo
+
+`Vert.x <https://vertx.io/>`_
+`Vert.x-tcp-eventbus-bridge <https://vertx.io/docs/vertx-tcp-eventbus-bridge/java/>`_
+
+
+Documentation
+-------------
+* `Wiki <http://wiki.bitplan.com/index.php/Vertx-eventbus-python>`_
+
+Vertx.eventbus module
+---------------------
+
+.. automodule:: Vertx.eventbus
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. toctree::
    :maxdepth: 2

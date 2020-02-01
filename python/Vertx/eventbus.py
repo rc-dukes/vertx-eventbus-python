@@ -1,5 +1,7 @@
 #!/usr/bin/python
-# Jayamine Alupotha
+# Authors:
+# 2016: Jayamine Alupotha https://github.com/jaymine
+# 2020: Wolfgang Fahl https://github.com/WolfgangFahl
 
 import socket
 import json
@@ -76,7 +78,7 @@ class State(IntEnum):
 #		1) instance
 #		1) host	- String
 #		2) port	- integer(>2^10-1)
-#		3) TimeOut - float- receive TimeOut
+#		3) timeOut - float- receive timeOut
 #		4) TimeInterval -float -sleep time
 #	inside parameters
 #		1) socket
@@ -92,12 +94,16 @@ class Eventbus:
     """
 
     # constructor
-    def __init__(self, instance, host='localhost', port=7000, TimeOut=0.1, TimeInterval=10.0,debug=False):
+    def __init__(self, instance, host='localhost', port=7000, timeOut=0.1, TimeInterval=10.0,debug=False):
         """
         constructor
-        
+
         Args:
-            host(str): the host to connect to
+            host(str): the host to connect to - default: 'localhost'
+            port(int): the port to use - default: 7000
+
+            debug(bool): True if debugging should be enabled - default: False
+
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.Handlers = {}
@@ -107,17 +113,17 @@ class Eventbus:
         self.this = instance
         self.debug=debug
         self.writable=True
-        if TimeOut < 0.01:
-            self.TimeOut = 0.01
+        if timeOut < 0.01:
+            self.timeOut = 0.01
         else:
-            self.TimeOut = TimeOut
+            self.timeOut = timeOut
 
         self.TimeInterval = TimeInterval
         # connect
         try:
             self.state = State.CONNECTING
             self.sock.connect((self.host, self.port))
-            self.sock.settimeout(self.TimeOut)
+            self.sock.settimeout(self.timeOut)
             t1 = threading.Thread(target=self.receivingThread)
             t1.start()
             self.state = State.OPEN
@@ -258,11 +264,11 @@ class Eventbus:
             self.writable = False
             # time.sleep(timeInterval)
             i = 0.0
-            while timeInterval / self.TimeOut >= i:
-                time.sleep(self.TimeOut)
+            while timeInterval / self.timeOut >= i:
+                time.sleep(self.timeOut)
                 if self.ReplyHandler == None:
                     break
-                if timeInterval / self.TimeOut == i and self.ReplyHandler != None:
+                if timeInterval / self.timeOut == i and self.ReplyHandler != None:
                     try:
                         self.ReplyHandler['replyHandler'](
                             self.this, 'Time Out Error', None)
@@ -317,7 +323,7 @@ class Eventbus:
                         self.writable = True
                         self.sendFrame(message)
                         self.writable = False
-                        time.sleep(self.TimeOut)
+                        time.sleep(self.timeOut)
                 except KeyError:
                     self.Handlers[address] = []
 
