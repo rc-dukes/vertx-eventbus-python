@@ -6,7 +6,7 @@
 vertx-eventbus-python
 =====================
 
-.. image:: ls
+.. image:: https://vertx.io/assets/logo-sm.png
     :alt: Vert.x logo
 
 This is a python client for the `Vert.x <https://vertx.io/>`_
