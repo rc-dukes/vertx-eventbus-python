@@ -24,6 +24,8 @@ class Handler(object):
                 self.headers= message['headers']
             if self.debug:
                 print("handler received "+str(self.result))
+                if self.headers:
+                    print(" headers: "+str(self.headers))
 
 RECEIVE_WAIT=0.3 # number of seconds to wait for result to be received
     
@@ -164,6 +166,7 @@ class TestEventbus(unittest.TestCase):
         time.sleep(RECEIVE_WAIT)
         eb.close()    
         assert handler.result == body2
+        assert handler.headers == {'type': 'text', 'size': 'small'}
         
     def test_send(self):
         eb = Eventbus(port=7001,debug=self.debug)
