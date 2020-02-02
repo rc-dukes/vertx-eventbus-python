@@ -6,6 +6,7 @@ Created on 2020-02-01
 import unittest
 import socket
 import time
+import getpass
 from Vertx.eventbus import Eventbus
 from Vertx.eventbus import State
 
@@ -32,8 +33,14 @@ class TestEventbus(unittest.TestCase):
         # https://stackoverflow.com/a/19102520/1497139
         super(TestEventbus, self).__init__(*args, **kwargs)
         self.debug=True
-        Eventbus.DEFAULT_TIMEOUT=1.0
-    
+        if getpass.getuser()=="travis":
+            Eventbus.DEFAULT_TIMEOUT=10.0
+        elif getpass.getuser()=="wf":    
+            # could be as low as 0.1 secs on a quick computer ...
+            Eventbus.DEFAULT_TIMEOUT=0.1
+        else:    
+            Eventbus.DEFAULT_TIMEOUT=1.0
+     
     def testCreateWithInvalidPort(self):
         """
         test creating an event bus for an invalid port 
