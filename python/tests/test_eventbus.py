@@ -5,11 +5,37 @@ Created on 2020-02-01
 '''
 import unittest
 import socket
+import json
 import time
 import getpass
 from Vertx.eventbus import Eventbus
-from Vertx.eventbus import State
+from Vertx.eventbus import State    
 
+class EchoCommand(dict):
+    """ an Echo Command object """
+    def __init__(self,cmd,msgType,address):
+        """ construct me 
+        
+        Args:
+            cmd(str): a command  either "time" or "counter"
+            msgType(str): a message type either "send" or "publish"
+            address(str): an address to be used for the echo
+        """
+        dict.__init__(self, cmd=cmd,msgType=msgType,address=address)
+        self.cmd=cmd;
+        self.msgType=msgType;
+        self.address=address;
+            
+    def asJson(self):
+        """ 
+        return me as a json String 
+        
+        Returns:
+           str: the json representation of the EchoCommand
+        """
+        return json.dumps(self.__dict__)
+           
+        
 class Handler(object):
     
     def __init__(self,debug=False):
@@ -45,6 +71,14 @@ class TestEventbus(unittest.TestCase):
             Eventbus.DEFAULT_TIMEOUT=0.1
         else:    
             Eventbus.DEFAULT_TIMEOUT=1.0
+            
+    def testCmd(self):
+        """ test json encoding of a Cmd"""
+        cmd=EchoCommand("time","send","me") 
+        json=cmd.asJson()
+        if self.debug:
+            print("echo command as json='%s'" % json)
+        assert json=='{"cmd": "time", "msgType": "send", "address": "me"}'       
      
     def testCreateWithInvalidPort(self):
         """
@@ -133,7 +167,7 @@ class TestEventbus(unittest.TestCase):
         handler=Handler(self.debug)
         eb.registerHandler("echo", handler.handle)    
         #jsonObject -body
-        body1 = {'msg': 'testpublish 1', }  
+        body1 = {'msg': 'testpublish 1'}  
         eb.wait(State.OPEN)
         # publish without headers
         eb.publish('echo', body1)
@@ -157,7 +191,7 @@ class TestEventbus(unittest.TestCase):
         eb = Eventbus(port=7001,debug=self.debug)
         handler=Handler(self.debug)
         eb.registerHandler("echo", handler.handle)   
-        body2 = {'msg': 'testpublish with headers', }   
+        body2 = {'msg': 'testpublish with headers' }   
         eb.addHeader('type', 'text')
         eb.addHeader('size', 'small')
         # publish with headers
@@ -167,22 +201,31 @@ class TestEventbus(unittest.TestCase):
         eb.close()    
         assert handler.result == body2
         assert handler.headers == {'type': 'text', 'size': 'small'}
-        
+    
+    def test_sendInvalidAddress(self):
+        eb = Eventbus(port=7001,debug=self.debug)
+        handler=Handler(self.debug)
+        address="unpermitted_address"
+        eb.registerHandler(address, handler.handle)
+        cmd=EchoCommand("time","send",address)   
+        eb.send('echo',cmd.asJson())
+        time.sleep(RECEIVE_WAIT)
+        # FIXME - 40 message bytes with payload {'type': 'err', 'message': 'access_denied'} not handled yet ...
+        eb.close()  
+          
     def test_send(self):
         eb = Eventbus(port=7001,debug=self.debug)
         handler=Handler(self.debug)
-        eb.registerHandler("echo", handler.handle)    
-        #jsonObject -body
-        body1 = {'msg': 'test send', }  
+        address="echoMe"
+        eb.registerHandler(address, handler.handle) 
+        cmd=EchoCommand("time","send",address)   
         eb.wait(State.OPEN)
-        # send without headers
-        # FIXME - this needs to be a send ... 
-        eb.publish('echo', body1)
+        eb.publish('echo',cmd)
         # wait for the message to arrive
         time.sleep(RECEIVE_WAIT)
         eb.close()  
-        assert handler.result == body1
-          
+        assert 'received_nanotime' in handler.result
+        assert 'iso_time' in handler.result
         
     def testSocketDirect(self):
         """ test direct socket communication with echo server"""

@@ -192,14 +192,20 @@ class Eventbus(object):
         if not 'type' in message:
             raise Exception("invalid message - type missing in: '%s'" % debugInfo)   
         msgType=message['type'];     
-        if 'address' not in message:
-            raise Exception("invalid message - address missing in '%s'" % debugInfo)
-        address=message['address']
-        if not address in self.handlers:
+        if msgType == 'message':
+            if 'address' not in message:
+                raise Exception("invalid message - address missing in '%s'" % debugInfo)
+            address=message['address']
+            if not address in self.handlers:
                 raise Exception("no handler for address %s" % debugInfo)
-        if msgType == 'message' or msgType == 'err' or msgType == 'pong':
             for handler in self.handlers[address]:
                 handler(message)
+        elif msgType == 'err':
+            if self.debug:
+                print("errors not handled yet")
+        elif msgType == 'pong':
+            if self.debug:
+                print("pong not handled yet")
         else:
             raise Exception("invalid message type %s in '%s'" %(msgType,debugInfo) )
        
@@ -273,7 +279,7 @@ class Eventbus(object):
             raise Exception("eventbus is not open when trying to %s to  %s" % (msgType,address))
         headers=self._mergeHeaders(headers)
         message = json.dumps(
-            {'type': msgType, 'address': address, 'headers': headers, 'body': body, })
+            {'type': msgType, 'address': address, 'headers': headers, 'body': body })
 
         self._sendFrame(message)
         

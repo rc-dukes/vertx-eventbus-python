@@ -10,7 +10,7 @@ checkinstalled() {
   fi
 }
 checkinstalled  sphinx-apidoc
-sphinx-apidoc -f -o docs/source Vertx/eventbus
+sphinx-apidoc -f -o docs/source . Vertx/eventbus tests/test_eventbus
 cd docs
 make clean html
 open build/html/index.html

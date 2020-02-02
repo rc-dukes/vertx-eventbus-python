@@ -1,5 +1,7 @@
 package io.vertx.example.echo;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import io.vertx.core.Promise;
@@ -22,6 +24,7 @@ import io.vertx.reactivex.core.eventbus.MessageConsumer;
 public class EchoVerticle extends AbstractVerticle {
   public int port = 7001;
   boolean allowExit;
+  public int counter=0;
 
   public EchoVerticle(boolean allowExit) {
     this.allowExit = allowExit;
@@ -46,13 +49,77 @@ public class EchoVerticle extends AbstractVerticle {
     return headerText;
   }
 
+  public static class EchoCommand {
+    String cmd;
+    String msgType;
+    String address;
+
+    public String getCmd() {
+      return cmd;
+    }
+
+    public void setCmd(String cmd) {
+      this.cmd = cmd;
+    }
+
+    public String getMsgType() {
+      return msgType;
+    }
+
+    public void setMsgType(String msgType) {
+      this.msgType = msgType;
+    }
+
+    public String getAddress() {
+      return address;
+    }
+
+    public void setAddress(String address) {
+      this.address = address;
+    }
+    
+    // default constructor to allow to map from json
+    public EchoCommand() {
+      
+    }
+
+    /**
+     * construct me
+     * 
+     * @param cmd
+     * @param msgType
+     * @param address
+     */
+    public EchoCommand(String cmd, String msgType, String address) {
+      this.cmd = cmd;
+      this.msgType = msgType;
+      this.address = address;
+    }
+
+    /**
+     * get a cmd from the given json string
+     * 
+     * @param json
+     * @return - the command
+     */
+    public static EchoCommand fromJson(String json) {
+      JsonObject jo = new JsonObject(json);
+      EchoCommand cmd = jo.mapTo(EchoCommand.class);
+      return cmd;
+    }
+
+    public JsonObject asJsonObject() {
+      return JsonObject.mapFrom(this);
+    }
+  }
+
   @Override
   public void start(Promise<Void> promise) {
 
     TcpEventBusBridge bridge = TcpEventBusBridge.create(vertx.getDelegate(),
         new BridgeOptions()
-            .addInboundPermitted(new PermittedOptions().setAddress("echo"))
-            .addOutboundPermitted(new PermittedOptions().setAddress("echo")));
+            .addInboundPermitted(new PermittedOptions().setAddressRegex("echo.*"))
+            .addOutboundPermitted(new PermittedOptions().setAddressRegex("echo.*")));
 
     bridge.listen(port, res -> {
       if (res.succeeded()) {
@@ -76,7 +143,30 @@ public class EchoVerticle extends AbstractVerticle {
           "Echo Verticle received:\n%s\nheaders:\n%s\n will reply it back now with received_time timestamp %d...",
           jo, headerText, time);
       System.out.println(msg);
-      jo.put("received_time", time);
+      // is the received json object a command?
+      if (jo.containsKey("cmd")) {
+        EchoCommand cmd = jo.mapTo(EchoCommand.class);
+        switch (cmd.getCmd()) {
+        case "time":
+          jo.put("received_nanotime", time);
+          SimpleDateFormat sdf = new SimpleDateFormat(
+              "yyyy-MM-dd HH:mm:ss.SSS");
+          Date now = new Date();
+          jo.put("iso_time", sdf.format(now));
+          break;
+        case "counter":
+          jo.put("counter",++counter);
+          break;
+        }
+        switch (cmd.msgType) {
+        case "send":
+          eb.send(cmd.getAddress(),jo);
+          break;
+        case "publish":
+          eb.publish(cmd.getAddress(), jo);
+          break;
+        }
+      }
       message.reply(jo);
       System.out.println(jo);
     });

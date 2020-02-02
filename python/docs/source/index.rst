@@ -33,10 +33,15 @@ Vertx.eventbus module
   :undoc-members:
   :show-inheritance:
 
-.. autoclass:: Vertx.eventbus.DeliveryOption
-  :members:
-  :undoc-members:
-  :show-inheritance:
+Unit Tests
+==========
+
+test_eventbus module
+--------------------
+
+.. automodule:: tests.test_eventbus
+   :members:
+   :show-inheritance:
 
 .. toctree::
    :maxdepth: 2
