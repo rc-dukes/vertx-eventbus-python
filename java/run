@@ -3,5 +3,5 @@
 # run the example
 scriptdir=$(dirname $0)
 cd $scriptdir
-mvn package -D skipTests -D createAssembly=true
+mvn clean package -D skipTests -D createAssembly=true
 java -jar target/python-eventbus-example-3.8.5-jar-with-dependencies.jar
