@@ -78,6 +78,7 @@ public class EchoVerticle extends AbstractVerticle {
       System.out.println(msg);
       jo.put("received_time", time);
       message.reply(jo);
+      System.out.println(jo);
     });
     promise.complete();
   }

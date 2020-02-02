@@ -238,7 +238,25 @@ class Eventbus(object):
         # wait for the socket timeout
         self.wait(State.CLOSED,timeOut=self.timeOut)
         
-    def _send(self,msgType,address,body):  
+    def _mergeHeaders(self,headers=None):
+        """ merge the given headers with the default headers 
+        Args:
+           headers(dict): the headers to merge - default:None
+           
+        Returns:
+           dict: the merged headers dict
+        """
+        
+        if headers is None:
+            return self.headers
+        else:
+            # https://stackoverflow.com/a/26853961/1497139
+            mergedHeaders=self.headers.copy()
+            mergedHeaders.update(headers)
+            return mergedHeaders
+            
+        
+    def _send(self,msgType,address,body=None, headers=None):  
         """
            send a message of the given message type to the given address with the givne body
            
@@ -246,49 +264,53 @@ class Eventbus(object):
            msgType(str): the type of the message publish, send or ping
            address(str): the target address to send the message to
            body(str): the body of the message e.g. a JSON object
+           headers(dict): headers to be added - default: None
          
         :raise:
            :Exception: - eventbus is not open
         """
         if not self.isOpen():
             raise Exception("eventbus is not open when trying to %s to  %s" % (msgType,address))
-       
+        headers=self._mergeHeaders(headers)
         message = json.dumps(
-            {'type': msgType, 'address': address, 'headers': self.headers, 'body': body, })
+            {'type': msgType, 'address': address, 'headers': headers, 'body': body, })
 
         self._sendFrame(message)
         
-    def send(self, address, body):
+    def send(self, address, body=None, headers=None):
         """
         Args:
             address(str): the target address to send the message to
             body(str): the body of the message e.g. a JSON object- default: None
+            headers(dict): headers to be added - default: None
             
         :raise:
            :Exception: - eventbus is not open    
         """
-        self._send('send',address,body)
+        self._send('send',address,body,headers=headers)
 
-    def publish(self, address, body):
+    def publish(self, address, body=None,headers=None):
         """
         publish
 
         Args:
             address(str): the target address to send the message to
             body(str): the body of the message e.g. a JSON object
+            headers(dict): headers to be added - default: None
          
         :raise:
            :Exception: - eventbus is not open
         """
         self._send('publish',address,body)
     
-    def registerHandler(self, address, callback):
+    def registerHandler(self, address, callback, headers=None):
         """
         register a handler
 
         Args:
             address(str): the address to register a handler for
             callback(function): a callback for the address
+            headers(dict): headers to be added - default: None
             
         :raise:
            :Exception: 
@@ -301,12 +323,10 @@ class Eventbus(object):
             raise Exception("callback for registerHandler must be callable")
         if not address in self.handlers:
             self.handlers[address]=[]
-            message = json.dumps(
-                {'type': 'register', 'address': address, })
-            self._sendFrame(message)
+            self._send('register', address, headers=headers)
         self.handlers[address].append(callback)   
 
-    def unregisterHandler(self, address,callback):
+    def unregisterHandler(self, address,callback,headers=None):
         """
         unregister a callback for a given address
         if there is more than one callback for the address it will be remove from the handler list
@@ -316,6 +336,7 @@ class Eventbus(object):
         Args:
             address(str): the address to unregister the handler for
             callback(function): the callback to unregister
+            headers(dict): headers to be added - default: None
             
         :raise:
            :Exception: 
@@ -332,7 +353,5 @@ class Eventbus(object):
             raise Exception("can't unregister callback for %s - callback not registered" % (address))    
         callbacks.remove(callback)
         if len(callbacks) == 0:
-            message = json.dumps(
-            {'type': 'unregister', 'address': address, })
-            self._sendFrame(message)
+            self._send('unregister', address, body=None, headers=headers)
             del self.handlers[address]

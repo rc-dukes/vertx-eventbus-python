@@ -11,14 +11,17 @@ from Vertx.eventbus import Eventbus
 from Vertx.eventbus import State
 
 class Handler(object):
-    result=None
     
     def __init__(self,debug=False):
         self.debug=debug
+        self.result=None
+        self.headers=None
     
     def handle(self, message):
         if message != None:
             self.result = message['body']
+            if 'headers' in message:
+                self.headers= message['headers']
             if self.debug:
                 print("handler received "+str(self.result))
 
@@ -136,10 +139,21 @@ class TestEventbus(unittest.TestCase):
         time.sleep(RECEIVE_WAIT)
         eb.close()
         assert handler.result == body1
-       
-    def test_publishWithHeader(self):   
-        eb = Eventbus(port=7001,debug=True)
-        handler=Handler()
+        
+    def testMergeHeaders(self):
+        """ test merging headers """
+        eb = Eventbus(port=7001,debug=self.debug,connect=False)
+        eb.addHeader("dh1", "dv1")
+        mh1=eb._mergeHeaders();
+        assert mh1=={'dh1': 'dv1'};
+        headers={"h1","v1"}
+        mh2=eb._mergeHeaders(headers)
+        assert mh2=={'dh1': 'dv1', 'h': '1', 'v': '1'}
+        
+    def test_publishWithHeader(self):
+        """ test publishing a message with headers """   
+        eb = Eventbus(port=7001,debug=self.debug)
+        handler=Handler(self.debug)
         eb.registerHandler("echo", handler.handle)   
         body2 = {'msg': 'testpublish with headers', }   
         eb.addHeader('type', 'text')
@@ -152,8 +166,8 @@ class TestEventbus(unittest.TestCase):
         assert handler.result == body2
         
     def test_send(self):
-        eb = Eventbus(port=7001,debug=True)
-        handler=Handler()
+        eb = Eventbus(port=7001,debug=self.debug)
+        handler=Handler(self.debug)
         eb.registerHandler("echo", handler.handle)    
         #jsonObject -body
         body1 = {'msg': 'test send', }  
