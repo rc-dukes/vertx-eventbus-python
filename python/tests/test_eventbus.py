@@ -203,6 +203,7 @@ class TestEventbus(unittest.TestCase):
         assert handler.headers == {'type': 'text', 'size': 'small'}
     
     def test_sendInvalidAddress(self):
+        """ test trying to send to an invalid address"""
         eb = Eventbus(port=7001,debug=self.debug)
         handler=Handler(self.debug)
         address="unpermitted_address"
@@ -214,18 +215,26 @@ class TestEventbus(unittest.TestCase):
         eb.close()  
           
     def test_send(self):
+        """ test sending a message"""
         eb = Eventbus(port=7001,debug=self.debug)
         handler=Handler(self.debug)
         address="echoMe"
         eb.registerHandler(address, handler.handle) 
         cmd=EchoCommand("time","send",address)   
         eb.wait(State.OPEN)
-        eb.publish('echo',cmd)
+        eb.send('echo',cmd)
         # wait for the message to arrive
         time.sleep(RECEIVE_WAIT)
         eb.close()  
         assert 'received_nanotime' in handler.result
         assert 'iso_time' in handler.result
+        
+    def test_ping(self):
+        """ test sending a ping"""
+        eb = Eventbus(port=7001,debug=self.debug)
+        eb.ping()
+        time.sleep(RECEIVE_WAIT)
+        eb.close()   
         
     def testSocketDirect(self):
         """ test direct socket communication with echo server"""

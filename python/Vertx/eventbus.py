@@ -282,6 +282,21 @@ class Eventbus(object):
             {'type': msgType, 'address': address, 'headers': headers, 'body': body })
 
         self._sendFrame(message)
+     
+    def ping(self):
+        """
+        send a ping
+        
+        :raise:
+           :Exception: - eventbus is not open
+        """
+        msgType='ping'
+        if not self.isOpen():
+            raise Exception("eventbus is not open when trying to %s" % (msgType))
+        message = json.dumps(
+            {'type': msgType})
+        self._sendFrame(message)
+    
         
     def send(self, address, body=None, headers=None):
         """
