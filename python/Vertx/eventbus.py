@@ -8,6 +8,7 @@ import json
 import struct
 import time
 import threading
+from threading import Timer
 from enum import IntEnum
 
 class State(IntEnum):
@@ -16,6 +17,12 @@ class State(IntEnum):
     OPEN=1
     CLOSING=2
     CLOSED=3
+    
+class RepeatTimer(Timer):
+    """ repeating timer """
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)    
 
 class Eventbus(object):
     """
@@ -31,6 +38,12 @@ class Eventbus(object):
 
     :ivar port: 7000 : the port to be used for the socket connection
     :vartype port: int
+    
+    :ivar pingInterval:5000:the ping interval in millisecs
+    :vartype pingInterval: int
+    
+    :ivar pongCount:0:the number of pongs received
+    :vartype pongCount: int
 
     :ivar timeOut: DEFAULT_TIMEOUT:time in secs to be used as the socket timeout
     :vartype timeOut: float
@@ -40,13 +53,14 @@ class Eventbus(object):
     """
     DEFAULT_TIMEOUT=60.0
 
-    def __init__(self, host='localhost', port=7000, timeOut=None,connect=True,debug=False):
+    def __init__(self, host='localhost', port=7000,options=None, timeOut=None,connect=True,debug=False):
         """
         constructor
 
         Args:
             host(str): the host to connect to - default: 'localhost'
             port(int): the port to use - default: 7000
+            options(dict): e.g. { vertxbus_ping_interval=5000 }
             timeOut(float): time in secs to be used as the socket timeout - default: 60 secs - the minimium timeOut is 10 msecs and will be enforced
             connect(bool): True if the eventbus should automatically be opened - default: True
             debug(bool): True if debugging should be enabled - default: False
@@ -62,6 +76,13 @@ class Eventbus(object):
         self.host = host
         self.port = port
         self.debug=debug
+        if options is None:
+            self.pingInterVal=5000;
+        else:
+            if "vertxbus_ping_interval" in options:
+                self.pingInterVal=options["vertxbus_ping_interval"];
+        self.pongCount=0        
+        self.pingTimer=RepeatTimer(self.pingInterVal/1000, self.ping)        
         if timeOut is None:
             timeOut=Eventbus.DEFAULT_TIMEOUT
         if timeOut < 0.01:
@@ -141,6 +162,15 @@ class Eventbus(object):
         if self.state is State.OPEN:
             return True
         return False
+    
+    def pongHandler(self):
+        """
+        default pong Handler - counts the number of pongs Received
+        """
+        self.pongCount=self.pongCount+1
+        if self.debug:
+            print("pong %d received" %self.pongCount)
+ 
 
     def _sendFrame(self, message_s):
         """
@@ -204,8 +234,7 @@ class Eventbus(object):
             if self.debug:
                 print("errors not handled yet")
         elif msgType == 'pong':
-            if self.debug:
-                print("pong not handled yet")
+            self.pongHandler()
         else:
             raise Exception("invalid message type %s in '%s'" %(msgType,debugInfo) )
        
@@ -215,6 +244,8 @@ class Eventbus(object):
         receive loop to be started in separate Thread
         """
         self.state = State.OPEN
+        self.pingTimer.start()
+        # debug message after open ..
         if self.debug:
             print ("starting receiving thread")
         while self.state < State.CLOSING:  # CONNECTING=0, OPEN=1
@@ -240,6 +271,7 @@ class Eventbus(object):
         if self.state == State.CONNECTING:
             self.sock.close()
             return
+        self.pingTimer.cancel()
         self.state = State.CLOSING
         # wait for the socket timeout
         self.wait(State.CLOSED,timeOut=self.timeOut)

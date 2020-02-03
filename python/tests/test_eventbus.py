@@ -231,10 +231,11 @@ class TestEventbus(unittest.TestCase):
         
     def test_ping(self):
         """ test sending a ping"""
-        eb = Eventbus(port=7001,debug=self.debug)
-        eb.ping()
-        time.sleep(RECEIVE_WAIT)
+        eb = Eventbus(port=7001,options={"vertxbus_ping_interval":500},debug=self.debug)
+        eb.wait(State.OPEN)
+        time.sleep(1.2)
         eb.close()   
+        assert eb.pongCount==2
         
     def testSocketDirect(self):
         """ test direct socket communication with echo server"""
