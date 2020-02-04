@@ -165,6 +165,8 @@ public class EchoVerticle extends AbstractVerticle {
       System.out.println(jo);
     });
     promise.complete();
+    String msg=String.format("EchoVerticle started on port %d with inboundRegEx %s and outboundRegex %s",this.port,this.inboundRegex,this.outboundRegex);
+    System.err.println(msg);
   }
 
   /**
@@ -187,6 +189,10 @@ public class EchoVerticle extends AbstractVerticle {
   @Option(name = "-p", aliases = {
       "--port" }, usage = "port to listen for eventbus messages")
   public int port = 7001;
+  @Option(name = "-d", aliases = {
+  "--debug" }, usage = "show debug output")
+  public boolean debug=false;
+  
   @Option(name = "-h", aliases = {
   "--help" }, usage = "show this usage")
   public boolean showHelp=false;

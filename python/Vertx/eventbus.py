@@ -5,11 +5,15 @@
 
 import socket
 import json
+import os
 import struct
-import time
 import threading
-from threading import Timer
+import time
 from enum import IntEnum
+from queue import Queue, Empty
+from subprocess import *
+from threading import Timer
+from threading import Thread
 
 class State(IntEnum):
     """ Eventbus state see https://github.com/vert-x3/vertx-bus-bower/blob/master/vertx-eventbus.js"""
@@ -23,7 +27,99 @@ class RepeatTimer(Timer):
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)    
-
+            
+class TcpEventBusBridgeStarter():
+    """  starter for the java based TcpEventBusBridge and test EchoVerticle """
+    def __init__(self,port,jar=None,waitFor="EchoVerticle started",debug=False):
+        """ construct me 
+        Args:
+           port(int): the port to listen to
+           jar(str): the path to the TcpEventBusBridge jar file
+           waitFor(str): the output string on stderr of the java process to waitFor
+           debug(bool): True if debugging output should be shown else False - default: False
+        """
+        self.port=port
+        self.waitFor=waitFor
+        self.debug=debug
+        if jar is None:
+            scriptpath=os.path.dirname(os.path.abspath(__file__))
+            if self.debug:
+                print("scriptpath is %s" % scriptpath)
+            self.jar=scriptpath+"/TcpEventBusBridge.jar"   
+        else:
+            self.jar=jar    
+        self.started=False
+     
+    def checkPort(self):
+        """ 
+        check that a socket connection is possible on the given port
+        Args:
+           port(int): the port to check
+        Returns:
+           bool: True if the port is available else False 
+        """
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        host='localhost'
+        check=None
+        try:
+            sock.connect((host, self.port))
+            check=True
+        except ConnectionRefusedError:
+            check=False
+        finally:        
+            sock.close()   
+        return check      
+    
+    def start(self):
+        """ start the jar file"""
+        self._javaStart()
+        
+    def wait(self,timeOut=30.0,timeStep=0.1):
+        """ wait for the java server to be started
+        
+        Args:
+          timeOut(float): the timeOut in secs after which the wait fails with an Exception
+          timeStep(float): the timeStep in secs in which the state should be regularly checked
+            
+        :raise:
+           :Exception: wait timed out  
+        """
+        timeLeft=timeOut;
+        while not self.started and timeLeft>0:
+            time.sleep(timeStep)
+            timeLeft=timeLeft-timeStep
+        if timeLeft<=0:
+            raise Exception("wait for start timedOut after %.3f secs" % (timeOut))
+        if self.debug:
+            print("wait for start successful after %.3f secs" % (timeOut-timeLeft))    
+       
+        
+    def stop(self): 
+        """ stop the jar file"""
+        self.process.kill()
+        self.started=False
+        
+    def _handleJavaOutput(self):
+        """ handle the output of the java program"""
+        out=self.process.stderr
+        for bline in iter(out.readline, b''):
+            line=bline.decode('utf8')
+            if self.debug:
+                print("java: %s" % line)
+            if self.waitFor in line:
+                self.started=True  
+        out.close()    
+    
+    def _javaStart(self):
+        """ 
+          call java jar 
+        
+        """
+        self.process = Popen(['java', '-jar' , self.jar, "--port",str(self.port)], stderr=PIPE)
+        t = Thread(target=self._handleJavaOutput)
+        t.daemon = True # thread dies with the program
+        t.start()
+ 
 class Eventbus(object):
     """
     Vert.x TCP eventbus client for python

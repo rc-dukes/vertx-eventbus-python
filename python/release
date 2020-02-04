@@ -1,5 +1,8 @@
 #!/bin/bash
 # WF 2020-01-02
 # create a release see https://packaging.python.org/tutorials/packaging-projects/
+jar=VertX/TcpEventBusBridge.jar
+cp -p ../java/target/*-jar-with-dependencies.jar $jar
+ls -l $jar 
 python3 setup.py sdist bdist_wheel
 python3 -m twine upload -u __token__ --repository-url https://test.pypi.org/legacy/ dist/*

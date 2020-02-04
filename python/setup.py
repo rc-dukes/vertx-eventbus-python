@@ -10,7 +10,7 @@ with open(path.join(this_directory, '../README.md'), encoding='utf-8') as f:
 
 setup(
     name='vertx-eventbus-python',
-    version='3.8.5a4',
+    version='3.8.5a5',
 
     packages=['Vertx',],
     author='Jayamine Alupotha',

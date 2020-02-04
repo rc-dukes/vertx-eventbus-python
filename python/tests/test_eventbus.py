@@ -8,9 +8,8 @@ import socket
 import json
 import time
 import getpass
-from Vertx.eventbus import Eventbus
+from Vertx.eventbus import Eventbus, TcpEventBusBridgeStarter
 from Vertx.eventbus import State    
-from builtins import None
 
 class EchoCommand(dict):
     """ an Echo Command object """
@@ -149,7 +148,7 @@ class TestEventbus(unittest.TestCase):
         body = {'msg': 'test Handler' }
         message={}
         message["body"]=body
-        handler.handle(message)
+        handler.handle(None,message)
         assert handler.result==body
             
     def testRegisterHandler(self):
@@ -288,19 +287,17 @@ class TestEventbus(unittest.TestCase):
         body = {'msg': 'test socketOfEventBus' }
         eb._send('publish','echo', body)
         eb.sock.close()
-    #        #s.settimeout(3.0)
-    #        #s.setblocking(0)
-    #        body = {'msg': 'test socket5' }
-    #        message = json.dumps({'type': 'send', 'address': 'echo', 'body': body, })
-    #        Eventbus.sendFrameViaSocket(s, message,True)
-    #        #socket_list=[s]
-    #         #timeout=2.0
-    #        #read_sockets, write_sockets, error_sockets = select.select(socket_list , [], [],timeout)
-    #        #for sock in read_sockets:
-    #        #    #incoming message from remote server
-    #        #    if sock is s:
-    #        data=s.recv(4)
-    #        #s.close()
+        
+    def testTcpEventBusBridgeStarter(self):
+        """ test the TcpEventBusBridgeStarter"""
+        starter=TcpEventBusBridgeStarter(7001,debug=True)
+        #starter.start()
+        #starter.wait()
+        portAvailable=starter.checkPort()
+        # kill the process (in any case)
+        #starter.stop()
+        assert portAvailable
+        #assert not starter.checkPort()
 
 if __name__ == "__main__":
     unittest.main()
