@@ -250,6 +250,19 @@ class TestEventbus(unittest.TestCase):
         # FIXME - 40 message bytes with payload {'type': 'err', 'message': 'access_denied'} not handled yet ...
         eb.close()
 
+    def test_reply(self):
+        """ test sending a message with a reply handler """
+        eb = Eventbus(port=7001,debug=self.debug)
+        handler=Handler(self.debug)
+        body = {'msg': 'test reply' }
+        eb.wait(State.OPEN)
+        eb.send('echo',body,callback=handler.handle)
+        # wait for the message to arrive
+        time.sleep(RECEIVE_WAIT)
+        eb.close()
+        assert handler.result==body
+
+
     def test_send(self):
         """ test sending a message"""
         eb = Eventbus(port=7001,debug=self.debug)

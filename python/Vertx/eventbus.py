@@ -9,6 +9,7 @@ import os
 import struct
 import threading
 import time
+import uuid
 from enum import IntEnum
 from queue import Queue, Empty
 from subprocess import *
@@ -152,6 +153,12 @@ class Eventbus(object):
 
     :ivar debug: False: True if debugging should be enabled
     :vartype debug: bool
+
+    :ivar handlers:{}: the dict of handlers for incoming messages
+    :vartype handlers: dict
+
+    :ivar replyHandler:{}: the dict of handlers for reply messages
+    :vartype replyHandlers: dict
     """
     DEFAULT_TIMEOUT=60.0
 
@@ -174,6 +181,7 @@ class Eventbus(object):
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.handlers = {}
+        self.replyHandler = {}
         self.headers = {}
         self.host = host
         self.port = port
@@ -328,10 +336,15 @@ class Eventbus(object):
             if 'address' not in message:
                 raise Exception("invalid message - address missing in '%s'" % debugInfo)
             address=message['address']
-            if not address in self.handlers:
-                raise Exception("no handler for address %s" % debugInfo)
-            for handler in self.handlers[address]:
+            if address in self.handlers:
+                for handler in self.handlers[address]:
+                    handler(None,message)
+            elif address in self.replyHandler:
+                handler=self.replyHandler[address]:
                 handler(None,message)
+                del self.replyHandler[address]
+            else:
+              raise Exception("no handler for address %s" % debugInfo)
         elif msgType == 'err':
             if self.debug:
                 print("errors not handled yet")
@@ -396,7 +409,7 @@ class Eventbus(object):
             return mergedHeaders
 
 
-    def _send(self,msgType,address,body=None, headers=None):
+    def _send(self,msgType,address,replyAddress=None,body=None, headers=None):
         """
            send a message of the given message type to the given address with the givne body
 
@@ -412,8 +425,12 @@ class Eventbus(object):
         if not self.isOpen():
             raise Exception("eventbus is not open when trying to %s to  %s" % (msgType,address))
         headers=self._mergeHeaders(headers)
-        message = json.dumps(
-            {'type': msgType, 'address': address, 'headers': headers, 'body': body })
+        if msgType=='send' and replyAddress is not None:
+            message = json.dumps(
+               {'type': msgType, 'address': address, 'replyAddress':replyAddress, 'headers': headers, 'body': body })
+        else:
+            message = json.dumps(
+               {'type': msgType, 'address': address, 'headers': headers, 'body': body })
 
         self._sendFrame(message)
 
@@ -432,7 +449,7 @@ class Eventbus(object):
         self._sendFrame(message)
 
 
-    def send(self, address, body=None, headers=None):
+    def send(self, address, body=None, callback=None, headers=None):
         """
         send a message
 
@@ -444,7 +461,12 @@ class Eventbus(object):
         :raise:
            :Exception: - eventbus is not open
         """
-        self._send('send',address,body,headers=headers)
+        replyAddress=None
+        if callback is not None:
+            replyAddress=str(uuid.uuid4())
+            this.replyHandler[replyAddress]=callback
+
+        self._send('send',address,body=body,headers=headers)
 
     def publish(self, address, body=None,headers=None):
         """
@@ -458,7 +480,7 @@ class Eventbus(object):
         :raise:
            :Exception: - eventbus is not open
         """
-        self._send('publish',address,body)
+        self._send('publish',address,body=body)
 
     def registerHandler(self, address, callback, headers=None):
         """
