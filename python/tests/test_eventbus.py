@@ -10,6 +10,7 @@ import time
 import getpass
 from Vertx.eventbus import Eventbus
 from Vertx.eventbus import State    
+from builtins import None
 
 class EchoCommand(dict):
     """ an Echo Command object """
@@ -50,14 +51,17 @@ class Handler(object):
         self.result=None
         self.headers=None
     
-    def handle(self, message):
+    def handle(self, err, message):
         """
         handle the given vert.x tcp-event bus message
         
         Args:
+           err(dict): potential error message
            message(dict): the message dict to handle
            it may contain a body and headers 
         """
+        if err !=None:
+            self.err = err
         if message != None:
             self.result = message['body']
             if 'headers' in message:

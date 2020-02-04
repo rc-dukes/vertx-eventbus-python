@@ -229,7 +229,7 @@ class Eventbus(object):
             if not address in self.handlers:
                 raise Exception("no handler for address %s" % debugInfo)
             for handler in self.handlers[address]:
-                handler(message)
+                handler(None,message)
         elif msgType == 'err':
             if self.debug:
                 print("errors not handled yet")
