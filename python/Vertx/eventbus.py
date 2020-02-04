@@ -119,6 +119,8 @@ class TcpEventBusBridgeStarter():
           call java jar
 
         """
+        if self.debug:
+            print ("starting java -jar %s" % self.jar)
         self.process = Popen(['java', '-jar' , self.jar, "--port",str(self.port)], stderr=PIPE)
         t = Thread(target=self._handleJavaOutput)
         t.daemon = True # thread dies with the program
