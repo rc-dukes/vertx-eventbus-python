@@ -21,17 +21,19 @@ class State(IntEnum):
     OPEN=1
     CLOSING=2
     CLOSED=3
-    
+
 class RepeatTimer(Timer):
     """ repeating timer """
     def run(self):
         while not self.finished.wait(self.interval):
-            self.function(*self.args, **self.kwargs)    
-            
+            self.function(*self.args, **self.kwargs)
+
 class TcpEventBusBridgeStarter():
     """  starter for the java based TcpEventBusBridge and test EchoVerticle """
     def __init__(self,port,jar=None,waitFor="EchoVerticle started",debug=False):
-        """ construct me 
+        """
+        construct me
+
         Args:
            port(int): the port to listen to
            jar(str): the path to the TcpEventBusBridge jar file
@@ -45,18 +47,20 @@ class TcpEventBusBridgeStarter():
             scriptpath=os.path.dirname(os.path.abspath(__file__))
             if self.debug:
                 print("scriptpath is %s" % scriptpath)
-            self.jar=scriptpath+"/TcpEventBusBridge.jar"   
+            self.jar=scriptpath+"/TcpEventBusBridge.jar"
         else:
-            self.jar=jar    
+            self.jar=jar
         self.started=False
-     
+
     def checkPort(self):
-        """ 
+        """
         check that a socket connection is possible on the given port
+
         Args:
            port(int): the port to check
+
         Returns:
-           bool: True if the port is available else False 
+           bool: True if the port is available else False
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         host='localhost'
@@ -66,23 +70,23 @@ class TcpEventBusBridgeStarter():
             check=True
         except ConnectionRefusedError:
             check=False
-        finally:        
-            sock.close()   
-        return check      
-    
+        finally:
+            sock.close()
+        return check
+
     def start(self):
         """ start the jar file"""
         self._javaStart()
-        
+
     def wait(self,timeOut=30.0,timeStep=0.1):
         """ wait for the java server to be started
-        
+
         Args:
           timeOut(float): the timeOut in secs after which the wait fails with an Exception
           timeStep(float): the timeStep in secs in which the state should be regularly checked
-            
+
         :raise:
-           :Exception: wait timed out  
+           :Exception: wait timed out
         """
         timeLeft=timeOut;
         while not self.started and timeLeft>0:
@@ -91,14 +95,14 @@ class TcpEventBusBridgeStarter():
         if timeLeft<=0:
             raise Exception("wait for start timedOut after %.3f secs" % (timeOut))
         if self.debug:
-            print("wait for start successful after %.3f secs" % (timeOut-timeLeft))    
-       
-        
-    def stop(self): 
+            print("wait for start successful after %.3f secs" % (timeOut-timeLeft))
+
+
+    def stop(self):
         """ stop the jar file"""
         self.process.kill()
         self.started=False
-        
+
     def _handleJavaOutput(self):
         """ handle the output of the java program"""
         out=self.process.stderr
@@ -107,25 +111,25 @@ class TcpEventBusBridgeStarter():
             if self.debug:
                 print("java: %s" % line)
             if self.waitFor in line:
-                self.started=True  
-        out.close()    
-    
+                self.started=True
+        out.close()
+
     def _javaStart(self):
-        """ 
-          call java jar 
-        
+        """
+          call java jar
+
         """
         self.process = Popen(['java', '-jar' , self.jar, "--port",str(self.port)], stderr=PIPE)
         t = Thread(target=self._handleJavaOutput)
         t.daemon = True # thread dies with the program
         t.start()
- 
+
 class Eventbus(object):
     """
     Vert.x TCP eventbus client for python
 
-    :ivar headers: any headers to be sent as per the vertx-tcp-eventbus-bridge specification 
-    
+    :ivar headers: any headers to be sent as per the vertx-tcp-eventbus-bridge specification
+
     :ivar state: the state of the the eventbus
     :vartype state: State.CONNECTING: State
 
@@ -134,10 +138,10 @@ class Eventbus(object):
 
     :ivar port: 7000 : the port to be used for the socket connection
     :vartype port: int
-    
+
     :ivar pingInterval:5000:the ping interval in millisecs
     :vartype pingInterval: int
-    
+
     :ivar pongCount:0:the number of pongs received
     :vartype pongCount: int
 
@@ -160,10 +164,10 @@ class Eventbus(object):
             timeOut(float): time in secs to be used as the socket timeout - default: 60 secs - the minimium timeOut is 10 msecs and will be enforced
             connect(bool): True if the eventbus should automatically be opened - default: True
             debug(bool): True if debugging should be enabled - default: False
-            
+
         :raise:
            :IOError: - the socket could not be opened
-           :Exception: - some other issue e.g. with starting the listening thread    
+           :Exception: - some other issue e.g. with starting the listening thread
 
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -177,8 +181,8 @@ class Eventbus(object):
         else:
             if "vertxbus_ping_interval" in options:
                 self.pingInterVal=options["vertxbus_ping_interval"];
-        self.pongCount=0        
-        self.pingTimer=RepeatTimer(self.pingInterVal/1000, self.ping)        
+        self.pongCount=0
+        self.pingTimer=RepeatTimer(self.pingInterVal/1000, self.ping)
         if timeOut is None:
             timeOut=Eventbus.DEFAULT_TIMEOUT
         if timeOut < 0.01:
@@ -190,12 +194,12 @@ class Eventbus(object):
         if connect:
             # connect
             self.open()
-            
+
     def open(self):
-        """ 
+        """
         open the eventbus by connecting the eventbus socket and starting a listening thread
         by default the connection is opened on construction of an Eventbus instance
-        
+
         :raise:
            :IOError: - the socket could not be opened
            :Exception: - some other issue e.g. with starting the listening thread
@@ -209,24 +213,24 @@ class Eventbus(object):
             raise e
         except Exception as e:
             self.close()
-            raise e      
-    
-    def _connect(self): 
-        """ connect my socket """ 
+            raise e
+
+    def _connect(self):
+        """ connect my socket """
         self.sock.connect((self.host, self.port))
-        self.sock.settimeout(self.timeOut)    
-            
+        self.sock.settimeout(self.timeOut)
+
     def wait(self,state=State.OPEN,timeOut=5.0, timeStep=0.01):
-        """ 
+        """
         wait for the eventbus to reach the given state
-        
+
         Args:
             state(State): the state to wait for - default: State.OPEN
             timeOut(float): the timeOut in secs after which the wait fails with an Exception
             timeStep(float): the timeStep in secs in which the state should be regularly checked
-            
+
         :raise:
-           :Exception: wait timed out  
+           :Exception: wait timed out
         """
         timeLeft=timeOut;
         while not self.state is state and timeLeft>0:
@@ -235,7 +239,7 @@ class Eventbus(object):
         if timeLeft<=0:
             raise Exception("wait for %s timedOut after %.3f secs" % (state.name,timeOut))
         if self.debug:
-            print("wait for %s successful after %.3f secs" % (state.name,timeOut-timeLeft))    
+            print("wait for %s successful after %.3f secs" % (state.name,timeOut-timeLeft))
 
     def addHeader(self, header, value):
         """
@@ -246,8 +250,8 @@ class Eventbus(object):
            value(object): the value of the header value to add
         """
         self.headers[header] = value
-    
-      
+
+
     def isOpen(self):
         """
         Checks if the eventbus state is OPEN.
@@ -258,7 +262,7 @@ class Eventbus(object):
         if self.state is State.OPEN:
             return True
         return False
-    
+
     def pongHandler(self):
         """
         default pong Handler - counts the number of pongs Received
@@ -266,7 +270,7 @@ class Eventbus(object):
         self.pongCount=self.pongCount+1
         if self.debug:
             print("pong %d received" %self.pongCount)
- 
+
 
     def _sendFrame(self, message_s):
         """
@@ -316,8 +320,8 @@ class Eventbus(object):
         if (self.debug):
             print(debugInfo)
         if not 'type' in message:
-            raise Exception("invalid message - type missing in: '%s'" % debugInfo)   
-        msgType=message['type'];     
+            raise Exception("invalid message - type missing in: '%s'" % debugInfo)
+        msgType=message['type'];
         if msgType == 'message':
             if 'address' not in message:
                 raise Exception("invalid message - address missing in '%s'" % debugInfo)
@@ -333,7 +337,7 @@ class Eventbus(object):
             self.pongHandler()
         else:
             raise Exception("invalid message type %s in '%s'" %(msgType,debugInfo) )
-       
+
 
     def _receivingThread(self):
         """
@@ -353,7 +357,7 @@ class Eventbus(object):
         if self.debug:
             print ("receiving thread finished in state %s" % self.state.name)
         self.sock.close()
-        self.state = State.CLOSED            
+        self.state = State.CLOSED
 
     def close(self):
         """
@@ -371,16 +375,16 @@ class Eventbus(object):
         self.state = State.CLOSING
         # wait for the socket timeout
         self.wait(State.CLOSED,timeOut=self.timeOut)
-        
+
     def _mergeHeaders(self,headers=None):
-        """ merge the given headers with the default headers 
+        """ merge the given headers with the default headers
         Args:
            headers(dict): the headers to merge - default:None
-           
+
         Returns:
            dict: the merged headers dict
         """
-        
+
         if headers is None:
             return self.headers
         else:
@@ -388,18 +392,18 @@ class Eventbus(object):
             mergedHeaders=self.headers.copy()
             mergedHeaders.update(headers)
             return mergedHeaders
-            
-        
-    def _send(self,msgType,address,body=None, headers=None):  
+
+
+    def _send(self,msgType,address,body=None, headers=None):
         """
            send a message of the given message type to the given address with the givne body
-           
+
         Args:
            msgType(str): the type of the message publish, send or ping
            address(str): the target address to send the message to
            body(str): the body of the message e.g. a JSON object
            headers(dict): headers to be added - default: None
-         
+
         :raise:
            :Exception: - eventbus is not open
         """
@@ -410,11 +414,11 @@ class Eventbus(object):
             {'type': msgType, 'address': address, 'headers': headers, 'body': body })
 
         self._sendFrame(message)
-     
+
     def ping(self):
         """
         send a ping
-        
+
         :raise:
            :Exception: - eventbus is not open
         """
@@ -424,34 +428,36 @@ class Eventbus(object):
         message = json.dumps(
             {'type': msgType})
         self._sendFrame(message)
-    
-        
+
+
     def send(self, address, body=None, headers=None):
         """
+        send a message
+
         Args:
             address(str): the target address to send the message to
             body(str): the body of the message e.g. a JSON object- default: None
             headers(dict): headers to be added - default: None
-            
+
         :raise:
-           :Exception: - eventbus is not open    
+           :Exception: - eventbus is not open
         """
         self._send('send',address,body,headers=headers)
 
     def publish(self, address, body=None,headers=None):
         """
-        publish
+        publish a message
 
         Args:
             address(str): the target address to send the message to
             body(str): the body of the message e.g. a JSON object
             headers(dict): headers to be added - default: None
-         
+
         :raise:
            :Exception: - eventbus is not open
         """
         self._send('publish',address,body)
-    
+
     def registerHandler(self, address, callback, headers=None):
         """
         register a handler
@@ -460,11 +466,11 @@ class Eventbus(object):
             address(str): the address to register a handler for
             callback(function): a callback for the address
             headers(dict): headers to be added - default: None
-            
+
         :raise:
-           :Exception: 
+           :Exception:
               - eventbus is not open
-              - callback not callable  
+              - callback not callable
         """
         if not self.isOpen():
             raise Exception("eventbus is not open when trying to register Handler for %s" % address)
@@ -473,7 +479,7 @@ class Eventbus(object):
         if not address in self.handlers:
             self.handlers[address]=[]
             self._send('register', address, headers=headers)
-        self.handlers[address].append(callback)   
+        self.handlers[address].append(callback)
 
     def unregisterHandler(self, address,callback,headers=None):
         """
@@ -486,12 +492,12 @@ class Eventbus(object):
             address(str): the address to unregister the handler for
             callback(function): the callback to unregister
             headers(dict): headers to be added - default: None
-            
+
         :raise:
-           :Exception: 
+           :Exception:
               - eventbus is not open
               - address not registered
-              - callback not registered 
+              - callback not registered
         """
         if not self.isOpen():
             raise Exception("eventbus is not open when trying to unregister handler for %s" % (address))
@@ -499,7 +505,7 @@ class Eventbus(object):
             raise Exception("can't unregister address %s - address not registered" % (address))
         callbacks=self.handlers[address]
         if callback not in callbacks:
-            raise Exception("can't unregister callback for %s - callback not registered" % (address))    
+            raise Exception("can't unregister callback for %s - callback not registered" % (address))
         callbacks.remove(callback)
         if len(callbacks) == 0:
             self._send('unregister', address, body=None, headers=headers)
