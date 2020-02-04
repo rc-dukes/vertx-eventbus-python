@@ -6,10 +6,8 @@ import java.util.List;
 
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+import io.vertx.example.util.TcpEventBusBridgeStarter;
 import io.vertx.example.util.VertxStarter;
-import io.vertx.ext.bridge.BridgeOptions;
-import io.vertx.ext.bridge.PermittedOptions;
-import io.vertx.ext.eventbus.bridge.tcp.TcpEventBusBridge;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.MultiMap;
 import io.vertx.reactivex.core.eventbus.EventBus;
@@ -115,23 +113,9 @@ public class EchoVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> promise) {
-
-    TcpEventBusBridge bridge = TcpEventBusBridge.create(vertx.getDelegate(),
-        new BridgeOptions()
-            .addInboundPermitted(new PermittedOptions().setAddressRegex("echo.*"))
-            .addOutboundPermitted(new PermittedOptions().setAddressRegex("echo.*")));
-
-    bridge.listen(port, res -> {
-      if (res.succeeded()) {
-
-      } else {
-        System.err.println("listen failed - can't start Echo Verticle");
-        System.err.println(
-            "is there another process listening on port " + port + "?");
-        if (allowExit)
-          System.exit(1);
-      }
-    });
+    TcpEventBusBridgeStarter bridgeStarter=new TcpEventBusBridgeStarter(vertx,"echo.*","echo.*",port);
+    bridgeStarter.setAllowExit(allowExit);
+    bridgeStarter.start();
     EventBus eb = vertx.eventBus();
 
     MessageConsumer<JsonObject> consumer = eb.consumer("echo", message -> {
@@ -156,6 +140,10 @@ public class EchoVerticle extends AbstractVerticle {
           break;
         case "counter":
           jo.put("counter",++counter);
+          break;
+        case "reset":
+          counter=0;
+          jo.put("counter", counter);
           break;
         }
         switch (cmd.msgType) {

@@ -37,13 +37,27 @@ class EchoCommand(dict):
            
         
 class Handler(object):
+    """ a Handler for messages"""
     
     def __init__(self,debug=False):
+        """ 
+        construct me 
+        
+        Args:
+           debug(bool): if True show debug messages - default: True 
+        """
         self.debug=debug
         self.result=None
         self.headers=None
     
     def handle(self, message):
+        """
+        handle the given vert.x tcp-event bus message
+        
+        Args:
+           message(dict): the message dict to handle
+           it may contain a body and headers 
+        """
         if message != None:
             self.result = message['body']
             if 'headers' in message:
@@ -201,6 +215,25 @@ class TestEventbus(unittest.TestCase):
         eb.close()    
         assert handler.result == body2
         assert handler.headers == {'type': 'text', 'size': 'small'}
+        
+    def test_publishWithMultipleHandlers(self):
+        """ test publishing a message to be handle by multiple handlers"""
+        eb = Eventbus(port=7001,debug=self.debug)
+        handler1=Handler(self.debug)
+        handler2=Handler(self.debug)
+        address="echoMe"
+        eb.registerHandler(address, handler1.handle) 
+        eb.registerHandler(address, handler2.handle)   
+        eb.wait(State.OPEN)
+        eb.send('echo',EchoCommand("reset","send",address))
+        cmd=EchoCommand("counter","publish",address)  
+        eb.send('echo',cmd)
+        time.sleep(RECEIVE_WAIT)
+        eb.close()
+        assert 'counter' in handler1.result
+        assert handler1.result['counter']==1
+        assert 'counter' in handler2.result 
+        assert handler1.result['counter']==2   
     
     def test_sendInvalidAddress(self):
         """ test trying to send to an invalid address"""
@@ -209,7 +242,7 @@ class TestEventbus(unittest.TestCase):
         address="unpermitted_address"
         eb.registerHandler(address, handler.handle)
         cmd=EchoCommand("time","send",address)   
-        eb.send('echo',cmd.asJson())
+        eb.send('echo',cmd)
         time.sleep(RECEIVE_WAIT)
         # FIXME - 40 message bytes with payload {'type': 'err', 'message': 'access_denied'} not handled yet ...
         eb.close()  
