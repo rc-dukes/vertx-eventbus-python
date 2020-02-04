@@ -233,7 +233,7 @@ class TestEventbus(unittest.TestCase):
         assert 'counter' in handler1.result
         assert handler1.result['counter']==1
         assert 'counter' in handler2.result 
-        assert handler1.result['counter']==2   
+        assert handler1.result['counter']==1   
     
     def test_sendInvalidAddress(self):
         """ test trying to send to an invalid address"""
