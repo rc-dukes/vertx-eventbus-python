@@ -70,7 +70,7 @@ class Handler(object):
                 if self.headers:
                     print(" headers: "+str(self.headers))
 
-RECEIVE_WAIT=0.3 # number of seconds to wait for result to be received
+RECEIVE_WAIT=0.4 # number of seconds to wait for result to be received
 
 class TestEventbus(unittest.TestCase):
     """

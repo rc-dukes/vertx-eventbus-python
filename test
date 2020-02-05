@@ -83,6 +83,7 @@ testPython() {
       createFatJar $l_fat_jar
     fi
     color_msg $blue "installing  $l_jar"
+    cd $pwd
     cp -p $l_fat_jar $l_jar 
   fi
   cd $pwd/python

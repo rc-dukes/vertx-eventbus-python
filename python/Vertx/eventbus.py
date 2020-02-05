@@ -466,7 +466,7 @@ class Eventbus(object):
             replyAddress=str(uuid.uuid4())
             self.replyHandler[replyAddress]=callback
 
-        self._send('send',address,body=body,headers=headers)
+        self._send('send',address,replyAddress=replyAddress,body=body,headers=headers)
 
     def publish(self, address, body=None,headers=None):
         """
