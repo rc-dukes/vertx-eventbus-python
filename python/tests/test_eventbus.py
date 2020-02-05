@@ -47,10 +47,11 @@ class Handler(object):
            debug(bool): if True show debug messages - default: True
         """
         self.debug=debug
+        self.err=None
         self.result=None
         self.headers=None
 
-    def handle(self, err, message):
+    def handle(self, err, message=None):
         """
         handle the given vert.x tcp-event bus message
 
@@ -242,13 +243,19 @@ class TestEventbus(unittest.TestCase):
         """ test trying to send to an invalid address"""
         eb = Eventbus(port=7001,debug=self.debug)
         handler=Handler(self.debug)
+        errorHandler=Handler(self.debug)
         address="unpermitted_address"
         eb.registerHandler(address, handler.handle)
+        eb.onError=errorHandler.handle        
         cmd=EchoCommand("time","send",address)
         eb.send('echo',cmd)
         time.sleep(RECEIVE_WAIT)
-        # FIXME - 40 message bytes with payload {'type': 'err', 'message': 'access_denied'} not handled yet ...
+        #  40 message bytes with payload {'type': 'err', 'message': 'access_denied'} not handled yet ... expected
         eb.close()
+        assert errorHandler.err is not None
+        assert errorHandler.result is None
+        assert handler.err is None
+        assert handler.result is None
 
     def test_reply(self):
         """ test sending a message with a reply handler """

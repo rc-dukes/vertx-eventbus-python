@@ -153,6 +153,9 @@ class Eventbus(object):
 
     :ivar debug: False: True if debugging should be enabled
     :vartype debug: bool
+    
+    :ivar onError:onError:the function to handle errors messages with no address
+    :vartype onError: function
 
     :ivar handlers:{}: the dict of handlers for incoming messages
     :vartype handlers: dict
@@ -162,7 +165,7 @@ class Eventbus(object):
     """
     DEFAULT_TIMEOUT=60.0
 
-    def __init__(self, host='localhost', port=7000,options=None, timeOut=None,connect=True,debug=False):
+    def __init__(self, host='localhost', port=7000,options=None, onError=None,timeOut=None,connect=True,debug=False):
         """
         constructor
 
@@ -170,6 +173,7 @@ class Eventbus(object):
             host(str): the host to connect to - default: 'localhost'
             port(int): the port to use - default: 7000
             options(dict): e.g. { vertxbus_ping_interval=5000 }
+            onError(function): the handler to use for erromessages with no address- default: None will be replaced by default onError
             timeOut(float): time in secs to be used as the socket timeout - default: 60 secs - the minimium timeOut is 10 msecs and will be enforced
             connect(bool): True if the eventbus should automatically be opened - default: True
             debug(bool): True if debugging should be enabled - default: False
@@ -191,6 +195,10 @@ class Eventbus(object):
         else:
             if "vertxbus_ping_interval" in options:
                 self.pingInterVal=options["vertxbus_ping_interval"];
+        if onError is None:
+            self.onError=self.onErrorHandler
+        else:
+            self.onError=onError      
         self.pongCount=0
         self.pingTimer=RepeatTimer(self.pingInterVal/1000, self.ping)
         if timeOut is None:
@@ -272,6 +280,13 @@ class Eventbus(object):
         if self.state is State.OPEN:
             return True
         return False
+    
+    def onErrorHandler(self,message):
+        """
+        default onError Handler - only gives debug output
+        """
+        if self.debug:
+                print("error message '%s' not handled" % message)
 
     def pongHandler(self):
         """
@@ -346,8 +361,7 @@ class Eventbus(object):
             else:
                 raise Exception("no handler for address %s" % debugInfo)
         elif msgType == 'err':
-            if self.debug:
-                print("errors not handled yet")
+            self.onError(message)
         elif msgType == 'pong':
             self.pongHandler()
         else:
