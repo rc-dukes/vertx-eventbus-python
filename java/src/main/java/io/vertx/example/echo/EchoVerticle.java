@@ -134,7 +134,7 @@ public class EchoVerticle extends AbstractVerticle {
           jo, headerText, time);
       System.out.println(msg);
       // is the received json object a command?
-      if (jo.containsKey("cmd")) {
+      if (jo!=null && jo.containsKey("cmd")) {
         EchoCommand cmd = jo.mapTo(EchoCommand.class);
         switch (cmd.getCmd()) {
         case "time":
