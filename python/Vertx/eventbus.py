@@ -464,7 +464,7 @@ class Eventbus(object):
         replyAddress=None
         if callback is not None:
             replyAddress=str(uuid.uuid4())
-            this.replyHandler[replyAddress]=callback
+            self.replyHandler[replyAddress]=callback
 
         self._send('send',address,body=body,headers=headers)
 
