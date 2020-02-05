@@ -340,11 +340,11 @@ class Eventbus(object):
                 for handler in self.handlers[address]:
                     handler(None,message)
             elif address in self.replyHandler:
-                handler=self.replyHandler[address]:
+                handler=self.replyHandler[address]
                 handler(None,message)
                 del self.replyHandler[address]
             else:
-              raise Exception("no handler for address %s" % debugInfo)
+                raise Exception("no handler for address %s" % debugInfo)
         elif msgType == 'err':
             if self.debug:
                 print("errors not handled yet")
