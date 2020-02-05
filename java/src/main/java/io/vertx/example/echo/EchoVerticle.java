@@ -134,38 +134,42 @@ public class EchoVerticle extends AbstractVerticle {
           jo, headerText, time);
       System.out.println(msg);
       // is the received json object a command?
-      if (jo!=null && jo.containsKey("cmd")) {
-        EchoCommand cmd = jo.mapTo(EchoCommand.class);
-        switch (cmd.getCmd()) {
-        case "time":
-          jo.put("received_nanotime", time);
-          SimpleDateFormat sdf = new SimpleDateFormat(
-              "yyyy-MM-dd HH:mm:ss.SSS");
-          Date now = new Date();
-          jo.put("iso_time", sdf.format(now));
-          break;
-        case "counter":
-          jo.put("counter", ++counter);
-          break;
-        case "reset":
-          counter = 0;
-          jo.put("counter", counter);
-          break;
+      if (jo != null) {
+        if (jo.containsKey("cmd")) {
+          EchoCommand cmd = jo.mapTo(EchoCommand.class);
+          switch (cmd.getCmd()) {
+          case "time":
+            jo.put("received_nanotime", time);
+            SimpleDateFormat sdf = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss.SSS");
+            Date now = new Date();
+            jo.put("iso_time", sdf.format(now));
+            break;
+          case "counter":
+            jo.put("counter", ++counter);
+            break;
+          case "reset":
+            counter = 0;
+            jo.put("counter", counter);
+            break;
+          }
+          switch (cmd.msgType) {
+          case "send":
+            eb.send(cmd.getAddress(), jo);
+            break;
+          case "publish":
+            eb.publish(cmd.getAddress(), jo);
+            break;
+          }
         }
-        switch (cmd.msgType) {
-        case "send":
-          eb.send(cmd.getAddress(), jo);
-          break;
-        case "publish":
-          eb.publish(cmd.getAddress(), jo);
-          break;
-        }
+        message.reply(jo);
+        System.out.println(jo);
       }
-      message.reply(jo);
-      System.out.println(jo);
     });
     promise.complete();
-    String msg=String.format("EchoVerticle started on port %d with inboundRegEx %s and outboundRegex %s",this.port,this.inboundRegex,this.outboundRegex);
+    String msg = String.format(
+        "EchoVerticle started on port %d with inboundRegEx %s and outboundRegex %s",
+        this.port, this.inboundRegex, this.outboundRegex);
     System.err.println(msg);
   }
 
@@ -189,14 +193,12 @@ public class EchoVerticle extends AbstractVerticle {
   @Option(name = "-p", aliases = {
       "--port" }, usage = "port to listen for eventbus messages")
   public int port = 7001;
-  @Option(name = "-d", aliases = {
-  "--debug" }, usage = "show debug output")
-  public boolean debug=false;
-  
-  @Option(name = "-h", aliases = {
-  "--help" }, usage = "show this usage")
-  public boolean showHelp=false;
-  
+  @Option(name = "-d", aliases = { "--debug" }, usage = "show debug output")
+  public boolean debug = false;
+
+  @Option(name = "-h", aliases = { "--help" }, usage = "show this usage")
+  public boolean showHelp = false;
+
   /**
    * main rerouted from static to instance call
    * 
