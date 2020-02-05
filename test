@@ -4,6 +4,7 @@
 # remember my working directory
 pwd=$(pwd)
 echoVerticle=python-eventbus-example
+version=3.8.5
 
 #ansi colors
 #http://www.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
@@ -61,8 +62,29 @@ testJava() {
    fi
 }
 
+# create the fat jar
+createFatJar() {
+	cd $pwd/java
+  local l_fat_jar="$1"
+  color_msg $blue "building local $l_fat_jar"
+  mvn clean package -D skipTests -D createAssembly=true
+}
+
 # start the Python Unit tests via the unittest module
 testPython() {
+	cd $pwd
+  local l_jar="python/Vertx/TcpEventBusBridge.jar"
+  if [ ! -f $l_jar ]
+  then
+    #ls -l java/target/python-eventbus-example-*-with-dependencies.jar
+    local l_fat_jar="java/target/$echoVerticle-$version-jar-with-dependencies.jar"
+    if [ ! -f $l_fat_jar ]
+    then
+      createFatJar $l_fat_jar
+    fi
+    color_msg $blue "installing  $l_jar"
+    cp -p $l_fat_jar $l_jar 
+  fi
   cd $pwd/python
   color_msg $blue "running python unit tests"
   python3 -m unittest
