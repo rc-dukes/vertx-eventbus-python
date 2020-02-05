@@ -84,7 +84,7 @@ testPython() {
     fi
     color_msg $blue "installing  $l_jar"
     cd $pwd
-    cp -p $l_fat_jar $l_jar 
+    cp -p $l_fat_jar $l_jar
   fi
   cd $pwd/python
   color_msg $blue "running python unit tests"
@@ -179,7 +179,6 @@ do
       testJava
       ;;
     -p|--python)
-      echo "make sure you started the echo server manually ... with java/run or by using the -pa option"
       testPython
       ;;
     -pa)
