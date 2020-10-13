@@ -30,7 +30,7 @@
 	</licenses>
 	<properties>
 		<!-- https://mvnrepository.com/artifact/junit/junit -->
-		<junit4.version>4.12</junit4.version>
+		<junit4.version>4.13.1</junit4.version>
 		<hamcrest-core.version>1.3</hamcrest-core.version>
 		<!-- args4j command line parser -->
 		<args4j.version>2.33</args4j.version>
